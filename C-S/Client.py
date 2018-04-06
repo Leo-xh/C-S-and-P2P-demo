@@ -48,11 +48,12 @@ def request(fileName, filePath):
                 if recvErrorCode == 1:
                     print("File does not exist, please check the inputted name")
                     break
-                if recvLen == 0:
+                if recvLen == 12:
                     print("File Received, saved as %s" %
                           os.path.join(filePath, fileName))
                     break
                 recvData = struct.unpack('!%ds' % (recvLen - 12), more[12:])
+                print("Received %dB" % (recvLen - 12))
                 file.write(recvData[0])
 
 

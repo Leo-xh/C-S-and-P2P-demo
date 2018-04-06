@@ -21,6 +21,7 @@ def service():
     print("listening")
     while True:
         newsock, addrAndPort = serverSocket.accept()
+        print("Request accepted")
         dealRequest(newsock, addrAndPort)
 
 
@@ -32,13 +33,20 @@ def dealRequest(sock, addrAndPort):
     filename = filename.decode().split('\00')[0]
     print("Sending file %s" % filename)
     if os.path.exists(os.path.join(resourPath, filename)):
+        errorCode = 0
         with open(os.path.join(resourPath, filename), 'rb') as sendFile:
-            dataBody = sendFile.read(2048)
-            errorCode = 0
-            packet = struct.pack('!6H%ds' % len(
-                dataBody), reqPro, reqSer, reqVer, reqId, 12 + len(dataBody), errorCode, dataBody)
-            print("This packet is %dB" % len(packet))
-            sock.sendall(packet)
+            while True:
+                dataBody = sendFile.read(2048)
+                if not dataBody:
+                    packet = struct.pack(
+                        '!6H', reqPro, reqSer, reqVer, reqId, 12, errorCode)
+                    sock.sendall(packet)
+                    print("The file has been sent")
+                else:
+                    packet = struct.pack('!6H%ds' % len(
+                        dataBody), reqPro, reqSer, reqVer, reqId, 12 + len(dataBody), errorCode, dataBody)
+                    print("This packet is %dB" % len(packet))
+                    sock.sendall(packet)
     else:
         errorCode = 1
         packet = struct.pack('!6H', reqPro, reqSer,
