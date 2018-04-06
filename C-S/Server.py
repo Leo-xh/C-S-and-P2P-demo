@@ -22,37 +22,46 @@ def service():
     while True:
         newsock, addrAndPort = serverSocket.accept()
         print("Request accepted")
-        dealRequest(newsock, addrAndPort)
+        task = threading.Thread(
+            target=dealRequest, args=(newsock, addrAndPort))
+        task.start()
 
 
 def dealRequest(sock, addrAndPort):
-    resourPath = 'Resources'
+    resourPath = 'D:\Resources'
     print("Tackleing a request from %s" % str(addrAndPort))
     request = sock.recv(requestSize)
     reqPro, reqSer, reqVer, reqId, filename = struct.unpack('!4H200s', request)
     filename = filename.decode().split('\00')[0]
     print("Sending file %s" % filename)
-    if os.path.exists(os.path.join(resourPath, filename)):
-        errorCode = 0
-        with open(os.path.join(resourPath, filename), 'rb') as sendFile:
-            while True:
-                dataBody = sendFile.read(2048)
-                if not dataBody:
-                    packet = struct.pack(
-                        '!6H', reqPro, reqSer, reqVer, reqId, 12, errorCode)
-                    sock.sendall(packet)
-                    print("The file has been sent")
-                else:
-                    packet = struct.pack('!6H%ds' % len(
-                        dataBody), reqPro, reqSer, reqVer, reqId, 12 + len(dataBody), errorCode, dataBody)
-                    print("This packet is %dB" % len(packet))
-                    sock.sendall(packet)
-    else:
-        errorCode = 1
-        packet = struct.pack('!6H', reqPro, reqSer,
-                             reqVer, reqId, 12, errorCode)
-        sock.sendall(packet)
-    sock.close()
+    try:
+        if os.path.exists(os.path.join(resourPath, filename)):
+            errorCode = 0
+            with open(os.path.join(resourPath, filename), 'rb') as sendFile:
+                while True:
+                    dataBody = sendFile.read(2048)
+                    if not dataBody:
+                        packet = struct.pack(
+                            '!6H', reqPro, reqSer, reqVer, reqId, 12, errorCode)
+                        sock.sendall(packet)
+                        print("The file is sent")
+                        break
+                    else:
+                        packet = struct.pack('!6H%ds' % len(
+                            dataBody), reqPro, reqSer, reqVer, reqId, 12 + len(dataBody), errorCode, dataBody)
+                        # print("This packet is %dB" % len(packet))
+                        sock.sendall(packet)
+        else:
+            errorCode = 1
+            packet = struct.pack('!6H', reqPro, reqSer,
+                                 reqVer, reqId, 12, errorCode)
+            sock.sendall(packet)
+    except Exception as e:
+        print(e.args)
+        raise e
+    finally:
+        sock.close()
+        exit()
 
 if __name__ == '__main__':
     service()

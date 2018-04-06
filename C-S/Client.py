@@ -20,49 +20,68 @@ serverIp = '127.0.0.1'
 serverPort = 6789
 IDs = []
 messageSize = 2060  # head plus databody
-reqSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-reqSocket.connect((serverIp, serverPort))
 
 
 def request(fileName, filePath):
+    reqSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    reqSocket.connect((serverIp, serverPort))
     print("Requesting %s" % fileName)
-    global reqSocket
     idExp = 0
     while True:
         if idExp not in IDs:
             break
+    IDs.append(idExp)
     protocol = 0
     service = 0
     version = 1
     packet = struct.pack('!4H200s', protocol, service,
                          version, idExp, fileName.encode())
     reqSocket.send(packet)
-    with open(os.path.join(filePath, fileName), 'wb') as file:
-        while True:
-            more = reqSocket.recv(messageSize)
-            if more:
-                header = struct.unpack('!6H', more[:12])
-                recvErrorCode = header[5]
-                recvLen = header[4]
-                idRecv = header[3]
-                if recvErrorCode == 1:
-                    print("File does not exist, please check the inputted name")
-                    break
-                if recvLen == 12:
-                    print("File Received, saved as %s" %
-                          os.path.join(filePath, fileName))
-                    break
-                recvData = struct.unpack('!%ds' % (recvLen - 12), more[12:])
-                print("Received %dB" % (recvLen - 12))
-                file.write(recvData[0])
+    pre = b''
+    try:
+        with open(os.path.join(filePath, fileName), 'wb') as file:
+            while True:
+                more = pre + reqSocket.recv(messageSize)
+                if more:
+                    header = struct.unpack('!6H', more[:12])
+                    recvErrorCode = header[5]
+                    recvLen = header[4]
+                    idRecv = header[3]
+                    if recvErrorCode == 1:
+                        print("File does not exist, please check the input")
+                        break
+                    if recvLen == 12:
+                        print("File Received, sized %dB, ID %d, saved as %s" %
+                              (os.path.getsize(os.path.join(filePath, fileName)),
+                                               idExp, os.path.join(filePath, fileName)))
+                        IDs.remove(idExp)
+                        break
+                    if len(more) < recvLen:
+                        more += reqSocket.recv(recvLen - len(more))
+                    if len(more) > recvLen:
+                        pre = more[recvLen:]
+                        more = more[:recvLen]
+                    recvData = struct.unpack(
+                        '!%ds' % (recvLen - 12), more[12:])
+                    file.write(recvData[0])
+    except Exception as e:
+        print(e.args)
+        raise e
+        # print(more)
 
 
 def client():
-    # fileName = input("Please enter the name of the file:")
-    # filePath = input("Please enter the path of the file:")
-    fileName = "test.mp4"
-    filePath = ""
-    request(fileName, filePath)
+    operation = input(
+        "Enter (R)equest to request a file, (E)xit to exit the client\n")
+    while operation != 'E' or operation != 'e':
+        fileName = input("Please enter the name of the file:")
+        filePath = input("Please enter the path of the file:")
+        if(filePath == ''):
+        	filePath = 'D:\downloads'
+        task = threading.Thread(target=request, args=(fileName, filePath))
+        task.start()
+        operation = input(
+            "Enter (R)equest to request a file, (E)xit to exit the client\n")
 
 if __name__ == '__main__':
     client()
