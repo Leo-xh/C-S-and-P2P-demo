@@ -5,3 +5,6 @@ testSocket.bind(('', 60000))
 testSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 testSocket.listen(1)
 print("listening")
+test = 'asdfasdf'
+a=test.split(sep='a')
+print(a)
