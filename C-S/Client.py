@@ -72,8 +72,7 @@ def request(fileName, filePath):
                     if len(more) > recvLen:
                         pre = more[recvLen:]
                         more = more[:recvLen]
-                    recvData = struct.unpack(
-                        '!%ds' % (recvLen - 12), more[12:])
+                    recvData = struct.unpack("!%ds" % (recvLen - 14), more[12:-2])
                     file.write(recvData[0])
     except UnExist as e:
         print(e.args)

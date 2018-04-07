@@ -57,8 +57,8 @@ def dealRequest(sock, addrAndPort):
                         break
                     else:
                         packet = struct.pack('!6H%ds' % (len(
-                            dataBody)+2), reqPro, reqSer, reqVer, reqId, 12 + len(dataBody), errorCode, dataBody+delimiter)
-                        print("This packet is %dB" % len(packet))
+                            dataBody) + 2), reqPro, reqSer, reqVer, reqId, 12 + len(dataBody) + 2, errorCode, dataBody + delimiter)
+                        # print("This packet is %dB" % len(packet))
                         sock.sendall(packet)
         else:
             errorCode = 1
