@@ -13,6 +13,7 @@ serverIp = '192.168.199.122'
 serverPort = 6789
 messageSize = 2060
 requestSize = 208
+delimiter = b'\xff\xff'
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 serverSocket.bind((serverIp, serverPort))
@@ -47,7 +48,7 @@ def dealRequest(sock, addrAndPort):
             errorCode = 0
             with open(os.path.join(resourPath, filename), 'rb') as sendFile:
                 while True:
-                    dataBody = sendFile.read(2048)
+                    dataBody = sendFile.read(2046)
                     if not dataBody:
                         packet = struct.pack(
                             '!6H', reqPro, reqSer, reqVer, reqId, 12, errorCode)
@@ -55,9 +56,9 @@ def dealRequest(sock, addrAndPort):
                         print("The file is sent")
                         break
                     else:
-                        packet = struct.pack('!6H%ds' % len(
-                            dataBody), reqPro, reqSer, reqVer, reqId, 12 + len(dataBody), errorCode, dataBody)
-                        # print("This packet is %dB" % len(packet))
+                        packet = struct.pack('!6H%ds' % (len(
+                            dataBody)+2), reqPro, reqSer, reqVer, reqId, 12 + len(dataBody), errorCode, dataBody+delimiter)
+                        print("This packet is %dB" % len(packet))
                         sock.sendall(packet)
         else:
             errorCode = 1
@@ -69,6 +70,7 @@ def dealRequest(sock, addrAndPort):
         print(e.args)
     except Exception as e:
         print(e.args)
+        print(packet)
         raise e
     finally:
         sock.close()

@@ -26,6 +26,7 @@ messageSize = 2060  # head plus databody
 
 
 class UnExist(Exception):
+
     def __init__(self, arg="File does not exist, please check the input"):
         super(UnExist, self).__init__(arg)
 
@@ -51,6 +52,8 @@ def request(fileName, filePath):
             while True:
                 more = pre + reqSocket.recv(messageSize)
                 if more:
+                    if len(more) < 12:
+                        more += reqSocket.recv(messageSize)
                     header = struct.unpack('!6H', more[:12])
                     recvErrorCode = header[5]
                     recvLen = header[4]
