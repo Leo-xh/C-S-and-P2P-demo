@@ -63,7 +63,6 @@ def dealRequest(sock, addrAndPort):
         raise e
     finally:
         sock.close()
-        exit()
 
 if __name__ == '__main__':
     service()

@@ -25,6 +25,11 @@ IDs = []
 messageSize = 2060  # head plus databody
 
 
+class UnExist(Exception):
+    def __init__(self, arg="File does not exist, please check the input"):
+        super(UnExist, self).__init__(arg)
+
+
 def request(fileName, filePath):
     reqSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     reqSocket.connect((serverIp, serverPort))
@@ -51,7 +56,7 @@ def request(fileName, filePath):
                     recvLen = header[4]
                     idRecv = header[3]
                     if recvErrorCode == 1:
-                        print("File does not exist, please check the input")
+                        raise UnExist()
                         break
                     if recvLen == 12:
                         print("File Received, sized %dB, ID %d, saved as %s" %
@@ -67,10 +72,14 @@ def request(fileName, filePath):
                     recvData = struct.unpack(
                         '!%ds' % (recvLen - 12), more[12:])
                     file.write(recvData[0])
-    except Exception as e:
+    except UnExist as e:
         print(e.args)
         os.remove(os.path.join(filePath, fileName))
+
+    except Exception as e:
+        print(e.args)
         raise e
+
         # print(more)
 
 
