@@ -69,6 +69,7 @@ def request(fileName, filePath):
                     file.write(recvData[0])
     except Exception as e:
         print(e.args)
+        os.remove(os.join(filePath, fileName))
         raise e
         # print(more)
 
