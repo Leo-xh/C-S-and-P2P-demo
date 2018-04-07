@@ -17,7 +17,7 @@ Version is 1.0
 ID is choosed as the first number that is not in IDs
 '''
 # serverIp = '127.0.0.1'
-serverIp = '192.168.199.122' 
+serverIp = '192.168.199.122'
 # Leo's laptop in dormitory
 
 serverPort = 6789
@@ -69,6 +69,7 @@ def request(fileName, filePath):
                     file.write(recvData[0])
     except Exception as e:
         print(e.args)
+        os.remove(os.join(filePath, fileName))
         raise e
         # print(more)
 
@@ -81,7 +82,7 @@ def client():
         filePath = input("Please enter the path of the file:")
         if(filePath == ''):
             filePath = 'D:\downloads'
-            if(os.path.exists(filePath)):
+            if(not os.path.exists(filePath)):
                 os.makedirs(filePath)
         task = threading.Thread(target=request, args=(fileName, filePath))
         task.start()

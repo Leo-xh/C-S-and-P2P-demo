@@ -7,7 +7,9 @@ from Crypto.Cipher import AES
 # -*- coding=utf-8 -*-
 
 
-serverIp = '127.0.0.1'
+# serverIp = '127.0.0.1'
+serverIp = '192.168.199.122' 
+# Leo's laptop in dormitory
 serverPort = 6789
 messageSize = 2060
 requestSize = 208
