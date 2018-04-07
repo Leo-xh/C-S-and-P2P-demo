@@ -37,7 +37,10 @@ def service():
 
 
 def dealRequest(sock, addrAndPort):
-    resourPath = 'D:\Resources'
+    # resourPath = 'D:\Resources'
+    resourPath = 'Resources'
+    # test
+
     print("Tackleing a request from %s" % str(addrAndPort))
     request = sock.recv(requestSize)
     reqPro, reqSer, reqVer, reqId, filename = struct.unpack('!4H200s', request)
@@ -71,7 +74,7 @@ def dealRequest(sock, addrAndPort):
     except Exception as e:
         print(e.args)
         print(packet)
-        raise e
+        # raise e
     finally:
         sock.close()
 

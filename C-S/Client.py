@@ -72,7 +72,7 @@ def request(fileName, filePath):
                     if len(more) > recvLen:
                         pre = more[recvLen:]
                         more = more[:recvLen]
-                    print("!%ds" % (recvLen - 14))
+                    # print("!%ds" % (recvLen - 14))
                     recvData = struct.unpack(
                         "!%ds" % (recvLen - 14), more[12:-2])
                     file.write(recvData[0])
@@ -95,7 +95,9 @@ def client():
         fileName = input("Please enter the name of the file:")
         filePath = input("Please enter the path of the file:")
         if(filePath == ''):
-            filePath = 'D:\downloads'
+            # filePath = 'D:\downloads'
+            filePath = 'downloads'
+            # test
             if(not os.path.exists(filePath)):
                 os.makedirs(filePath)
         task = threading.Thread(target=request, args=(fileName, filePath))
