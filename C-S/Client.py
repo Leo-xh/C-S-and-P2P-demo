@@ -67,12 +67,14 @@ def request(fileName, filePath):
                                idExp, os.path.join(filePath, fileName)))
                         IDs.remove(idExp)
                         break
-                    if len(more) < recvLen:
-                        more += reqSocket.recv(recvLen - len(more))
+                    while len(more) < recvLen:
+                        more += reqSocket.recv(messageSize)
                     if len(more) > recvLen:
                         pre = more[recvLen:]
                         more = more[:recvLen]
-                    recvData = struct.unpack("!%ds" % (recvLen - 14), more[12:-2])
+                    print("!%ds" % (recvLen - 14))
+                    recvData = struct.unpack(
+                        "!%ds" % (recvLen - 14), more[12:-2])
                     file.write(recvData[0])
     except UnExist as e:
         print(e.args)
