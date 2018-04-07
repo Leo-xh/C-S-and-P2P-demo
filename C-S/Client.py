@@ -78,6 +78,7 @@ def request(fileName, filePath):
 
     except Exception as e:
         print(e.args)
+        os.remove(os.path.join(filePath, fileName))
         raise e
 
         # print(more)

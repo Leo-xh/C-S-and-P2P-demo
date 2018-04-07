@@ -8,7 +8,7 @@ from Crypto.Cipher import AES
 
 
 # serverIp = '127.0.0.1'
-serverIp = '192.168.199.122' 
+serverIp = '192.168.199.122'
 # Leo's laptop in dormitory
 serverPort = 6789
 messageSize = 2060
@@ -17,6 +17,12 @@ serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 serverSocket.bind((serverIp, serverPort))
 serverSocket.listen(10)
+
+
+class UnExist(Exception):
+
+    def __init__(self, arg="File does not exist, the connection is closed"):
+        super(UnExist, self).__init__(arg)
 
 
 def service():
@@ -58,6 +64,9 @@ def dealRequest(sock, addrAndPort):
             packet = struct.pack('!6H', reqPro, reqSer,
                                  reqVer, reqId, 12, errorCode)
             sock.sendall(packet)
+            raise UnExist()
+    except UnExist as e:
+        print(e.args)
     except Exception as e:
         print(e.args)
         raise e
