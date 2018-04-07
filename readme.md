@@ -319,14 +319,15 @@ server close the connection.
 
 + Struct in Python
     Deal with the header with struct library.
-
     [usage of struct](https://docs.python.org/2/library/struct.html)
-
+    [An example](http://lib.csdn.net/article/python/39858)
+    
     使用方法：可以再unpack的时候只unpack某几个字节，得到长度再继续unpack。
 
 + Twisted Framework
     * [Chinese Introduction](https://blog.csdn.net/hanhuili/article/details/9389433)
     * [Official Document](https://blog.csdn.net/hanhuili/article/details/9389433)
 
-+ Hash Encryption
-    * [Sha1 Hash](https://docs.python.org/2/library/hashlib.html)
++ [Encryption](https://www.cnblogs.com/yyds/p/7072492.html)
+    * [Sha1 Hash(Unidirectional encryption)](https://docs.python.org/2/library/hashlib.html)
+    * [AES(Symmetric encryption)](http://pythonhosted.org/pycrypto/)
