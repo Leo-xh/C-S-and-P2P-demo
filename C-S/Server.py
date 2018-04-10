@@ -3,17 +3,15 @@ import os
 import socket
 import struct
 import threading
+import time
 from Crypto.Cipher import AES
 # -*- coding=utf-8 -*-
 
 
-# serverIp = '127.0.0.1'
-serverIp = '192.168.199.122'
-# Leo's laptop in dormitory
+serverIp = '127.0.0.1'
 serverPort = 6789
-messageSize = 2060
+messageSize = 1488
 requestSize = 208
-delimiter = b'\xff\xff'
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 serverSocket.bind((serverIp, serverPort))
@@ -39,7 +37,6 @@ def service():
 def dealRequest(sock, addrAndPort):
     # resourPath = 'D:\Resources'
     resourPath = 'Resources'
-    # test
 
     print("Tackleing a request from %s" % str(addrAndPort))
     request = sock.recv(requestSize)
@@ -49,20 +46,26 @@ def dealRequest(sock, addrAndPort):
     try:
         if os.path.exists(os.path.join(resourPath, filename)):
             errorCode = 0
+            FileSize = os.path.getsize(os.path.join(resourPath, filename))
+            Sendsize = 0
             with open(os.path.join(resourPath, filename), 'rb') as sendFile:
                 while True:
-                    dataBody = sendFile.read(2046)
+                    dataBody = sendFile.read(messageSize - 12)
                     if not dataBody:
                         packet = struct.pack(
                             '!6H', reqPro, reqSer, reqVer, reqId, 12, errorCode)
                         sock.sendall(packet)
-                        print("The file is sent")
+                        print("\nThe file is sent")
                         break
                     else:
-                        packet = struct.pack('!6H%ds' % (len(
-                            dataBody) + 2), reqPro, reqSer, reqVer, reqId, 12 + len(dataBody) + 2, errorCode, dataBody + delimiter)
+                        packet = struct.pack('!6H%ds' % len(
+                            dataBody), reqPro, reqSer, reqVer, reqId, 12 + len(dataBody), errorCode, dataBody)
                         # print("This packet is %dB" % len(packet))
                         sock.sendall(packet)
+                        Sendsize += len(dataBody)
+                        sys.stdout.write("\rSend %f%%" %
+                                         ((Sendsize / FileSize) * 100))
+                        sys.stdout.flush()
         else:
             errorCode = 1
             packet = struct.pack('!6H', reqPro, reqSer,
@@ -74,7 +77,7 @@ def dealRequest(sock, addrAndPort):
     except Exception as e:
         print(e.args)
         print(packet)
-        # raise e
+        raise e
     finally:
         sock.close()
 
