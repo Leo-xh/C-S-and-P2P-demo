@@ -16,11 +16,16 @@ Version is 1.0
 ID is choosed as the first number that is not in IDs
 '''
 serverIp = '127.0.0.1'
-
+secretary_key = "project-C/S and P2P protocol key"
 serverPort = 6789
 IDs = []
 # messageSize = 2060  # head plus databody
-messageSize = 1488
+messageSize = 1036
+Encryptor = AES.new(secretary_key)
+
+protocol = 0
+service = 0
+version = 1
 
 
 class UnExist(Exception):
@@ -39,10 +44,8 @@ def request(fileName, filePath):
             break
         idExp += 1
     IDs.append(idExp)
-    protocol = 0
-    service = 0
-    version = 1
-    packet = struct.pack('!4H200s', protocol, service, version, idExp,
+    ServiceOfThread = service
+    packet = struct.pack('!4H200s', protocol, ServiceOfThread, version, idExp,
                          fileName.encode())
     reqSocket.send(packet)
     recvBuff = b''
@@ -58,6 +61,8 @@ def request(fileName, filePath):
                 recvErrorCode = header[5]
                 recvLen = header[4]
                 idRecv = header[3]
+                recvSer = header[1]
+                # may be valid length
 
                 if recvErrorCode == 1:
                     raise UnExist()
@@ -75,7 +80,13 @@ def request(fileName, filePath):
 
                 recvData = struct.unpack("!%ds" % (recvLen - 12),
                                          recvBuff[12:recvLen])
-                file.write(recvData[0])
+                if ServiceOfThread == 1:
+                    recvData = Encryptor.decrypt(recvData[0])
+                    recvData = recvData[:recvSer]
+                else:
+                    recvData = recvData[0]
+                file.write(recvData)
+                # print(recvData)
 
                 recvBuff = recvBuff[recvLen:]
                 # print("!%ds" % (recvLen - 12))
@@ -90,8 +101,11 @@ def request(fileName, filePath):
         os.remove(os.path.join(filePath, fileName))
 
         raise e
+    finally:
+        reqSocket.close()
 
-    reqSocket.close()
+
+ModeDict = {"Plain": 0, "Encryted": 1}
 
 
 def client():
@@ -100,6 +114,9 @@ def client():
     while operation != 'E' or operation != 'e':
         fileName = input("Please enter the name of the file:")
         filePath = input("Please enter the path of the file:")
+        Mode = input("Please choose the transmit mode(Plain or Encryted):")
+        global service
+        service = ModeDict[Mode]
         if (filePath == ''):
             # filePath = 'D:\downloads'
             filePath = 'downloads'
@@ -107,6 +124,7 @@ def client():
                 os.makedirs(filePath)
         task = threading.Thread(target=request, args=(fileName, filePath))
         task.start()
+        task.join()
         operation = input(
             "Enter (R)equest to request a file, (E)xit to exit the client\n")
 
