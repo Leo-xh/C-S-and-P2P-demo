@@ -21,7 +21,6 @@ pad = b'0'
 
 
 class UnExist(Exception):
-
     def __init__(self, arg="File does not exist, the connection is closed"):
         super(UnExist, self).__init__(arg)
 
@@ -44,8 +43,13 @@ def dealRequest(sock, addrAndPort):
     print("Tackleing a request from %s" % str(addrAndPort))
     request = sock.recv(requestSize)
     reqPro, reqSer, reqVer, reqId, filename = struct.unpack('!4H200s', request)
-    filename = filename.decode().split('\00')[0]
-    print("Sending file %s" % filename)
+    if reqSe == 1:
+        filename = filename.decode().split('\00')[0]
+        print("Sending file %s" % filename)
+    elif reqSer == 2:
+        with open("catalogueFile.txt", "w") as catalogueFile:
+            catalogueFile.write(requestCatalogue())
+        filename = "catalogueFile.txt"
     try:
         if os.path.exists(os.path.join(resourPath, filename)):
             errorCode = 0
@@ -58,10 +62,11 @@ def dealRequest(sock, addrAndPort):
                 while True:
                     dataBody = sendFile.read(messageSize - 12)
                     if not dataBody:
-                        packet = struct.pack(
-                            '!6H', reqPro, reqSer, reqVer, reqId, 12, errorCode)
+                        packet = struct.pack('!6H', reqPro, reqSer, reqVer,
+                                             reqId, 12, errorCode)
                         sock.sendall(packet)
-                        print("\nThe file is sent")
+                        if reqSer == 1:
+                            print("\nThe file is sent")
                         break
                     else:
                         if reqSer == 1:
@@ -70,19 +75,21 @@ def dealRequest(sock, addrAndPort):
                             reqSer = validLen
                             dataBody += appended
                             dataBody = Encryptor.encrypt(dataBody)
-                        packet = struct.pack('!6H%ds' % len(
-                            dataBody), reqPro, reqSer, reqVer, reqId, 12 + len(dataBody), errorCode, dataBody)
+                        packet = struct.pack(
+                            '!6H%ds' % len(dataBody), reqPro, reqSer, reqVer,
+                            reqId, 12 + len(dataBody), errorCode, dataBody)
                         # print(dataBody)
                         sock.sendall(packet)
                         Sendsize += len(dataBody)
-                        sys.stdout.write("\rSend %f%%" %
-                                         ((Sendsize / FileSize) * 100))
-                        sys.stdout.flush()
+                        if reqSer == 1:
+                            sys.stdout.write("\rSend %f%%" %
+                                             ((Sendsize / FileSize) * 100))
+                            sys.stdout.flush()
 
         else:
             errorCode = 1
-            packet = struct.pack('!6H', reqPro, reqSer,
-                                 reqVer, reqId, 12, errorCode)
+            packet = struct.pack('!6H', reqPro, reqSer, reqVer, reqId, 12,
+                                 errorCode)
             sock.sendall(packet)
             raise UnExist()
     except UnExist as e:
@@ -93,6 +100,18 @@ def dealRequest(sock, addrAndPort):
         raise e
     finally:
         sock.close()
+
+
+def requestCatalogue(sourcePath='Resources', dirpath='.'):
+    fileList = ""
+    dirpathFather, catalogueName, fileNames = next(os.walk(sourcePath))
+    for i in fileNames:
+        fileList += (os.path.join(dirpath, i) + "\n")
+    for i in catalogueName:
+        fileList += requestCatalogue(
+            os.path.join(sourcePath, i), os.path.join(dirpath, i))
+    return fileList
+
 
 if __name__ == '__main__':
     service()
