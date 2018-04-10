@@ -24,7 +24,6 @@ messageSize = 1036
 Encryptor = AES.new(secretary_key)
 
 protocol = 0
-service = 0
 version = 1
 
 
@@ -34,7 +33,7 @@ class UnExist(Exception):
         super(UnExist, self).__init__(arg)
 
 
-def request(fileName, filePath):
+def request(fileName, filePath, ServiceOfThread):
     reqSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     reqSocket.connect((serverIp, serverPort))
     print("Requesting %s" % fileName)
@@ -44,7 +43,6 @@ def request(fileName, filePath):
             break
         idExp += 1
     IDs.append(idExp)
-    ServiceOfThread = service
     packet = struct.pack('!4H200s', protocol, ServiceOfThread, version, idExp,
                          fileName.encode())
     reqSocket.send(packet)
@@ -81,6 +79,7 @@ def request(fileName, filePath):
                 recvData = struct.unpack("!%ds" % (recvLen - 12),
                                          recvBuff[12:recvLen])
                 if ServiceOfThread == 1:
+                    print(recvLen - 12)
                     recvData = Encryptor.decrypt(recvData[0])
                     recvData = recvData[:recvSer]
                 else:
@@ -97,7 +96,6 @@ def request(fileName, filePath):
 
     except Exception as e:
         print(e.args)
-        print(recvLen)
         os.remove(os.path.join(filePath, fileName))
 
         raise e
@@ -105,28 +103,84 @@ def request(fileName, filePath):
         reqSocket.close()
 
 
+def lookup():
+    reqSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    reqSocket.connect((serverIp, serverPort))
+    print("Looping up the server")
+    ServiceOfThread = 2
+    idExp = 0
+    packet = struct.pack('!4H200s', protocol,
+                         ServiceOfThread, version, idExp, b'')
+    reqSocket.send(packet)
+    recvBuff = b''
+    Filelist = ''
+    try:
+        while True:
+            recvBuff += reqSocket.recv(messageSize)
+
+            while len(recvBuff) < 12:
+                recvBuff += reqSocket.recv(messageSize)
+
+            header = struct.unpack('!6H', recvBuff[:12])
+            recvErrorCode = header[5]
+            recvLen = header[4]
+            idRecv = header[3]
+            recvSer = header[1]
+            # may be valid length
+
+            if recvErrorCode == 1:
+                raise UnExist()
+                break
+
+            if recvLen == 12:
+                print(Filelist)
+                break
+
+            while len(recvBuff) < recvLen:
+                recvBuff += reqSocket.recv(messageSize)
+
+            recvData = struct.unpack("!%ds" % (recvLen - 12),
+                                     recvBuff[12:recvLen])
+
+            Filelist += recvData[0].decode()
+            recvBuff = recvBuff[recvLen:]
+
+    except Exception as e:
+        print(e.args)
+
+
 ModeDict = {"Plain": 0, "Encryted": 1}
 
 
 def client():
-    operation = input(
-        "Enter (R)equest to request a file, (E)xit to exit the client\n")
+    operation = ''
     while operation != 'E' or operation != 'e':
-        fileName = input("Please enter the name of the file:")
-        filePath = input("Please enter the path of the file:")
-        Mode = input("Please choose the transmit mode(Plain or Encryted):")
-        global service
-        service = ModeDict[Mode]
-        if (filePath == ''):
-            # filePath = 'D:\downloads'
-            filePath = 'downloads'
-            if (not os.path.exists(filePath)):
-                os.makedirs(filePath)
-        task = threading.Thread(target=request, args=(fileName, filePath))
-        task.start()
-        task.join()
+        if operation == 'R' or operation == 'r':
+            fileName = input("Please enter the name of the file:")
+            filePath = input("Please enter the path of the file:")
+            Mode = input("Please choose the transmit mode(Plain or Encryted):")
+            try:
+                service = ModeDict[Mode]
+            except Exception as e:
+                continue
+            if (filePath == ''):
+                # filePath = 'D:\downloads'
+                filePath = 'downloads'
+                if (not os.path.exists(filePath)):
+                    os.makedirs(filePath)
+            task = threading.Thread(
+                target=request, args=(fileName, filePath, service))
+            task.start()
+            task.join()
+        if operation == 'L' or operation == 'l':
+            task = threading.Thread(target=lookup)
+            task.start()
+            task.join()
         operation = input(
-            "Enter (R)equest to request a file, (E)xit to exit the client\n")
+            "Enter \n\
+             (R)equest to request a file,\n\
+             (L)ook to request the contents in the server,\n\
+             (E)xit to exit the client\n")
 
 
 if __name__ == '__main__':

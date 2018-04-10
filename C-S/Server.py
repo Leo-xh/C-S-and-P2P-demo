@@ -17,10 +17,11 @@ serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 serverSocket.bind((serverIp, serverPort))
 serverSocket.listen(10)
 Encryptor = AES.new(secretary_key)
-pad = b'0'
+pad = b'\x00'
 
 
 class UnExist(Exception):
+
     def __init__(self, arg="File does not exist, the connection is closed"):
         super(UnExist, self).__init__(arg)
 
@@ -43,11 +44,15 @@ def dealRequest(sock, addrAndPort):
     print("Tackleing a request from %s" % str(addrAndPort))
     request = sock.recv(requestSize)
     reqPro, reqSer, reqVer, reqId, filename = struct.unpack('!4H200s', request)
-    if reqSe == 1:
+    # print(reqSer)
+    if reqSer != 2:
         filename = filename.decode().split('\00')[0]
         print("Sending file %s" % filename)
+        if reqSer == 1:
+            print("Encrypted")
     elif reqSer == 2:
-        with open("catalogueFile.txt", "w") as catalogueFile:
+        with open(os.path.join(resourPath, "catalogueFile.txt"), "w") \
+                as catalogueFile:
             catalogueFile.write(requestCatalogue())
         filename = "catalogueFile.txt"
     try:
@@ -65,7 +70,7 @@ def dealRequest(sock, addrAndPort):
                         packet = struct.pack('!6H', reqPro, reqSer, reqVer,
                                              reqId, 12, errorCode)
                         sock.sendall(packet)
-                        if reqSer == 1:
+                        if reqSer != 2:
                             print("\nThe file is sent")
                         break
                     else:
@@ -78,10 +83,10 @@ def dealRequest(sock, addrAndPort):
                         packet = struct.pack(
                             '!6H%ds' % len(dataBody), reqPro, reqSer, reqVer,
                             reqId, 12 + len(dataBody), errorCode, dataBody)
-                        # print(dataBody)
+                        print(len(packet))
                         sock.sendall(packet)
                         Sendsize += len(dataBody)
-                        if reqSer == 1:
+                        if reqSer != 2:
                             sys.stdout.write("\rSend %f%%" %
                                              ((Sendsize / FileSize) * 100))
                             sys.stdout.flush()
@@ -105,8 +110,11 @@ def dealRequest(sock, addrAndPort):
 def requestCatalogue(sourcePath='Resources', dirpath='.'):
     fileList = ""
     dirpathFather, catalogueName, fileNames = next(os.walk(sourcePath))
+    fileNames.sort()
+    catalogueName.sort()
     for i in fileNames:
-        fileList += (os.path.join(dirpath, i) + "\n")
+        if i != "catalogueFile.txt":
+            fileList += (os.path.join(dirpath, i) + "\n")
     for i in catalogueName:
         fileList += requestCatalogue(
             os.path.join(sourcePath, i), os.path.join(dirpath, i))
