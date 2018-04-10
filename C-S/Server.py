@@ -48,6 +48,7 @@ def dealRequest(sock, addrAndPort):
     if reqSer != 2:
         filename = filename.decode().split('\00')[0]
         print("Sending file %s" % filename)
+        originreqSer = reqSer
         if reqSer == 1:
             print("Encrypted")
     elif reqSer == 2:
@@ -83,13 +84,14 @@ def dealRequest(sock, addrAndPort):
                         packet = struct.pack(
                             '!6H%ds' % len(dataBody), reqPro, reqSer, reqVer,
                             reqId, 12 + len(dataBody), errorCode, dataBody)
-                        print(len(packet))
+                        # print(len(packet))
                         sock.sendall(packet)
                         Sendsize += len(dataBody)
                         if reqSer != 2:
                             sys.stdout.write("\rSend %f%%" %
                                              ((Sendsize / FileSize) * 100))
                             sys.stdout.flush()
+                        reqSer = originreqSer
 
         else:
             errorCode = 1

@@ -79,7 +79,7 @@ def request(fileName, filePath, ServiceOfThread):
                 recvData = struct.unpack("!%ds" % (recvLen - 12),
                                          recvBuff[12:recvLen])
                 if ServiceOfThread == 1:
-                    print(recvLen - 12)
+                    # print(recvLen - 12)
                     recvData = Encryptor.decrypt(recvData[0])
                     recvData = recvData[:recvSer]
                 else:
