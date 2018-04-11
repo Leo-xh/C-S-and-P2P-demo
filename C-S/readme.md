@@ -17,7 +17,7 @@ The protocol body is shown below:
 Provides service, and supports multiple clients requesting resources simultaneously.
 
 ### Client
-The download folder is set to './downloads'.
+The download folder is set to './downloads' defaultedly.
 
 ### Example
 ![Example](https://github.com/Leo-xh/C-S-and-P2P-demo/blob/master/imgs/example.gif)
