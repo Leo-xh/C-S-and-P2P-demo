@@ -1,5 +1,7 @@
 ## Client & Server Mode
 -------------
+![license](https://img.shields.io/github/license/mashape/apistatus.svg) ![continuousphp](https://img.shields.io/continuousphp/git-hub/doctrine/dbal/master.svg)
+
 ### Explain
 The protocol body is shown below:
 
