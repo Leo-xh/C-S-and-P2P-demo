@@ -154,7 +154,7 @@ ModeDict = {"Plain": 0, "Encryted": 1}
 
 def client():
     operation = ''
-    while operation != 'E' or operation != 'e':
+    while operation != 'E' and operation != 'e':
         if operation == 'R' or operation == 'r':
             fileName = input("Please enter the name of the file:")
             filePath = input("Please enter the path of the file:")
