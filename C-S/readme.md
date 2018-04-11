@@ -2,6 +2,7 @@
 -------------
 ### Explain
 The protocol body is shown below:
+
 ![protocol body](https://github.com/Leo-xh/C-S-and-P2P-demo/blob/master/imgs/Message.PNG)
 
 
