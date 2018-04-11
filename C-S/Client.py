@@ -149,7 +149,7 @@ def lookup():
         print(e.args)
 
 
-ModeDict = {"Plain": 0, "Encryted": 1}
+ModeDict = {"Plain": 0, "Encryted": 1, "P": 0, "E": 1, "p": 0, "e": 1}
 
 
 def client():
@@ -158,7 +158,8 @@ def client():
         if operation == 'R' or operation == 'r':
             fileName = input("Please enter the name of the file:")
             filePath = input("Please enter the path of the file:")
-            Mode = input("Please choose the transmit mode(Plain or Encryted):")
+            Mode = input(
+                "Please choose the transmit mode((P)lain or (E)ncryted):")
             try:
                 service = ModeDict[Mode]
             except Exception as e:
