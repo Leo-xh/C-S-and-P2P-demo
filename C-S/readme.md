@@ -18,4 +18,4 @@ Provides service, and supports multiple clients requesting resources simultaneou
 The download folder is set to './downloads'.
 
 ### Example
-![Example](https://github.com/Leo-xh/C-S-and-P2P-demo/blob/master/imgs/2018-04-11%2008-37-58.flv)
+![Example](https://github.com/Leo-xh/C-S-and-P2P-demo/blob/master/imgs/example.gif)
