@@ -24,4 +24,4 @@ The download folder is set to './downloads' defaultedly.
 
 ### TO DO
 
-  -[ ] File indentity check.
+- [ ] File indentity check.
