@@ -21,3 +21,6 @@ The download folder is set to './downloads' defaultedly.
 
 ### Example
 ![Example](https://github.com/Leo-xh/C-S-and-P2P-demo/blob/master/imgs/example.gif)
+
+### TO DO
+-[ ] File indentity check.
