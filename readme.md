@@ -170,6 +170,12 @@ AES算法的文本长度一致。
 |---|---|---|---|
 |0|2|1|n|
 
+数据体：
+文件路径名，间隔符回车。
+
+
+比例显示修复：
+
 
 控制流程设计
 
@@ -292,6 +298,8 @@ server close the connection.
                 2. A metainfo file pointing to the tracker and containing information on the structure of the torrent must be produced and published.
                 3. At least one seeder with access to the complete torrent must be set up(the "origin").
 
+
+
 + Advanced and Accepted Extended Protocol
     * DHT(The most expected to implement)
         - This is implemented over UDP.
@@ -303,7 +311,33 @@ server close the connection.
         for swarms once peers have bootstrapped via other mechanisms such as DHT or Tracker announces.
     * UDP Tracker Protocol for BitTorrent
         - To discover other peers in a swarm a client announces it's existance to a tracker. The HTTP protocol is used and a typical request contains the following parameters: info_hash, key, peer_id, port, downloaded, left, uploaded and compact. A response contains a list of peers (host and port) and some other information. The request and response are both quite short. Since TCP is used, a connection has to be opened and closed, introducing additional overhead.
+    * [Compact Representation of Peer List](http://www.bittorrent.org/beps/bep_0023.html)
 
+
+### Model
+modules:
+
++ Metainfo
+    * function: decode and encode .torrent file.
++ Tracker
+    * function: 
+        - records alive peers
+    * Connect to new peers
+        - allows new peers to join the torrent
+    * Contacts with current torrent
+        - contacts with peers and provides peer-list.
++ Client
+    * function: requests to tracker and recives peer-list.
++ Peer
+    * Handshake
+        - function:
+            handshakes with othet peers, with a threshold
+    * selects pieces
+    * selects peers
+    * sends files
+    * download files
+    * Writing to Files
+    
 ### Programming Details
 ----
 + how to use socket in python?
@@ -350,3 +384,7 @@ server close the connection.
 + [Encryption](https://www.cnblogs.com/yyds/p/7072492.html)
     * [Sha1 Hash(Unidirectional encryption)](https://docs.python.org/2/library/hashlib.html)
     * [AES(Symmetric encryption)](http://pythonhosted.org/pycrypto/)
+
+
+##### Traps
+If we install bencode from pip, it will raise error, please install it from its official website.
