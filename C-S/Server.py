@@ -7,8 +7,15 @@ import time
 from Crypto.Cipher import AES
 # -*- coding=utf-8 -*-
 
+
+
+# serverIp = '172.18.35.225'
+serverIp = '192.168.199.218'
+# Leo's laptop in dormitory
+
 secretary_key = "project-C/S and P2P protocol key"
-serverIp = '127.0.0.1'
+# serverIp = '127.0.0.1'
+
 serverPort = 6789
 messageSize = 1036
 requestSize = 208
