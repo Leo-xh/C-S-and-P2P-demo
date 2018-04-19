@@ -379,7 +379,8 @@ modules:
 
 + Twisted Framework
     * [Chinese Introduction](https://blog.csdn.net/hanhuili/article/details/9389433)
-    * [Official Document](https://blog.csdn.net/hanhuili/article/details/9389433)
+    * [Krondo's Toturials](http://krondo.com/an-introduction-to-asynchronous-programming-and-twisted/)
+    * [Official Document](https://twistedmatrix.com/trac/wiki/Documentation)
 
 + [Encryption](https://www.cnblogs.com/yyds/p/7072492.html)
     * [Sha1 Hash(Unidirectional encryption)](https://docs.python.org/2/library/hashlib.html)

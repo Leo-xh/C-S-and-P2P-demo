@@ -15,7 +15,8 @@ Service is File Transfer(0)
 Version is 1.0
 ID is choosed as the first number that is not in IDs
 '''
-serverIp = '127.0.0.1'
+# serverIp = '127.0.0.1'
+serverIp = '172.18.35.225'
 secretary_key = "project-C/S and P2P protocol key"
 serverPort = 6789
 IDs = []
