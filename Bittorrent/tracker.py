@@ -21,7 +21,8 @@ class service(DatagramProtocol):
 
         action, transactionID = struct.unpack("!II", recvPacket[8:])
 
-        if action == 0:  # connect request
+        if action == 0:  # connect response
+            ''' response a packet with 4-bytes action, transactionID, and connectionID '''
             print("Recevie connect request form %s:%d..." % recvAddr)
             print("Send connect response to %s:%d..." % recvAddr)
             connectionID, = generateConnectionID()
@@ -32,7 +33,9 @@ class service(DatagramProtocol):
                 120, connectRequestTimeOut, [connectionID])
             peerTimer[connectionID].start()
 
-        elif action == 1:  # announce request
+        elif action == 1:  # announce response
+            ''' response a packet with 4-bytes action, transactionID, interval '''
+            ''' and a peer list which has 4-bytes ip and 2-bytes port for each peer '''
             connectionID, = struct.unpack("!Q", recvPacket)
 
             if len(recvPacket) < 98 or connectionID not in peerTimer:
@@ -47,8 +50,6 @@ class service(DatagramProtocol):
                 for num in ip.split('.'):
                     peerList += struct.pack('!B', int(num))
                 peerList += recvPacket[96:98]
-                # ip, key, num_want, port = struct.unpack("!IIIH", recvPacket[84:])
-                # peerList = peerList + ip + port
                 peerConnectID.append(connectionID)
 
             interval = 30
