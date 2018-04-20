@@ -2,57 +2,85 @@ import struct
 import bencode
 import threading
 import time
+import random
 from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
 # -*- coding=utf-8 -*-
 """ UDP """
 trackerIP = '127.0.0.1'
 trackerPort = 6789
-peerList = b''  # the peers list of compate format
-peerTransID = []  # the list of peers' transaction id
-timers = []
+peerList = b''  # the peers' list of compate format
+peerTimer = {}  # the dict of peers' timer with their connection id as key
+peerConnectID = []  # the list of peers' connection id
 
 
 class service(DatagramProtocol):
     def datagramReceived(self, recvPacket, recvAddr):
-        if not recvAddr in peerListAddrList:
-            peerJoin(recvAddr)
-        else:  # reset the timer for the peer
-            index = peerListAddrList.index(recvAddr)
-            timers[index].cancel()
-            timers[index] = threading.timer(120, peerRemove, [recvAddr])
-            timers[index].start()
-        print("received %r from %s" % (recvPacket, recvAddr))
-        print(recvPacket.decode())
-        self.transport.write(recvPacket, recvAddr)  # send data to recvAddr
-        print(peerList)
-        print(len(peerList))
-        port, = struct.unpack('!H', peerList[4:6])
-        print(port)
-        time.sleep(1)
+        if len(recvPacket) < 16:
+            return
+
+        action, transactionID = struct.unpack("!II", recvPacket[8:])
+
+        if action == 0:  # connect request
+            print("Recevie connect request form %s:%d..." % recvAddr)
+            print("Send connect response to %s:%d..." % recvAddr)
+            connectionID, = generateConnectionID()
+            packet = struct.pack("!IIQ", action, transactionID, connectionID)
+            self.transport.write(packet, recvAddr)  # send response to recvAddr
+            # set a timer(120s) for the connet request
+            peerTimer[connectionID] = threading.Timer(
+                120, connectRequestTimeOut, [connectionID])
+            peerTimer[connectionID].start()
+
+        elif action == 1:  # announce request
+            connectionID, = struct.unpack("!Q", recvPacket)
+
+            if len(recvPacket) < 98 or connectionID not in peerTimer:
+                return
+
+            print("Recevie announce request form %s:%d..." % recvAddr)
+            print(
+                "Send announce response with peer list to %s:%d..." % recvAddr)
+            peerTimer[connectionID].cancle()
+            if connectionID not in peerConnectID:
+                ip, port = recvAddr  # need the external ip
+                for num in ip.split('.'):
+                    peerList += struct.pack('!B', int(num))
+                peerList += recvPacket[96:98]
+                # ip, key, num_want, port = struct.unpack("!IIIH", recvPacket[84:])
+                # peerList = peerList + ip + port
+                peerConnectID.append(connectionID)
+
+            interval = 30
+            packet = struct.pack("!III", action, transactionID, interval)
+            packet += peerList
+            self.transport.write(packet, recvAddr)  # send peerList to client
+
+            peerTimer[connectionID] = threading(2 * internel, peerRemove,
+                                                [connectionID])
+            peerTimer[connectionID].start()
 
 
-def peerJoin(addr):
-    ''' add the new peer into peerList and peerListAddrList '''
-    global peerList, peerListAddrList, timers
-    peerListAddrList.append(addr)
-    ip, port = addr
-    for num in ip.split('.'):
-        peerList += struct.pack('!B', int(num))  # unsigned char for 1 byte
-    peerList += struct.pack('!H', port)  # unsigned short for 2 bytes
-    # set a timer for the new peer
-    t = threading.timer(120, peerRemove, [addr])
-    t.start()
-    timers.append(t)
-
-
-def peerRemove(addr):
+def peerRemove(connectionID):
     ''' rm the peer from peerList and peerListAddrList '''
-    global peerList, peerListAddrList, timers
-    index = peerListAddrList.index(addr)
-    peerListAddrList.remove(addr)
+    global peerList, peerTimer, peerConnectID
+    index = peerConnectID.index(connectionID)
+    peerConnectID.remove(connectionID)
     peerList = peerList[0:(index * 6)] + peerList[((index + 1) * 6):]
-    del timers[index]
+    del peerTimer[connectionID]
+
+
+def connectRequestTimeOut(infoHash, connectionID):
+    del peerTimer[connectionID]
+
+
+def generateConnectionID():  # generate a 64-bits connection id
+    byteNum = struct.pack("!I", int(time.time()))
+    binayNum = ""
+    while len(binayNum) < 32:
+        binayNum = binayNum + str(random.randint(0, 1))
+    byteNum += struct.pack("!I", int(binayNum, 2))
+    return struct.unpack("!Q", byteNum)
 
 
 if __name__ == '__main__':
