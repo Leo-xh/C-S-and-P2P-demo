@@ -1,7 +1,7 @@
 import struct
 import random
 import socket
-from utils import *
+import utils
 from twisted.internet import reactor
 from twisted.internet.protocol import DatagramProtocol
 
@@ -49,9 +49,9 @@ class RequestClient(DatagramProtocol):
         self.connection_id = 0
         self.port = port
         self.ipstr = ipstr
-        self.ip = ip2int(ipstr)
+        self.ip = utils.ip2int(ipstr)
         self.trackerIpstr = trackerIpstr
-        self.trackerIp = ip2int(self.trackerIpstr)
+        self.trackerIp = utils.ip2int(self.trackerIpstr)
         self.trackerPort = trackerPort
         self.connectReqFormat = "!qii"
         self.connectRecvFormat = "!iiq"
@@ -106,7 +106,7 @@ class RequestClient(DatagramProtocol):
                 for i in range(0, sizeOfpeerList):
                     (ip, port) = struct.unpack(
                         "!ih", datagram[12 + i * 6:12 + (i + 1) * 6])
-                    self.peerList.append((ip2int(ip), port))
+                    self.peerList.append((utils.ip2int(ip), port))
 
     def connect(self):
         self.retransTimesConn += 1
@@ -123,8 +123,8 @@ class RequestClient(DatagramProtocol):
     def announce(self):
         self.retransAnnoun += 1
         print("announcing, the %dth try" % self.retransTimesAnnoun)
-        self.transaction_id = randint(0, 2**32 - 1)
-        packet = struct.pack(announceReqFormat, self.connection_id, 1,
+        self.transaction_id = random.randint(0, 2**32 - 1)
+        packet = struct.pack(self.announceReqFormat, self.connection_id, 1,
                              self.transaction_id, self.info_hash,
                              self.peer_id, self.downloaded, self.left,
                              self.event, self.ip, self.key, self.num_want,
