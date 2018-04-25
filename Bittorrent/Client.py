@@ -1,35 +1,36 @@
 import struct
 import random
+import socket
 from utils import *
 from twisted.internet import reactor
 from twisted.internet.protocol import DatagramProtocol
 
 
 class RequestClient(DatagramProtocol):
-    ''' connect to the tracker and get response '''
-    '''
+    ''' connect to the tracker and get response
     1. send a connect datagram when start running until received a response
     2. store the connection_id and send a announce request until recived a
         response
     3. retransmit methods
     4. the connection_id is expired 60s since received
+    args must contains the following items:
+        1. info_hash
+        2. peer_id
+        3. downloaded
+        4. left
+        5. uploaded
+        6. event
+        7. key
+        8. num_want
+        9. protocol_id
     '''
 
-    def __init__(self, protocol_id=0, ipstr='127.0.0.1',
-                 port=6789, trackerIpstr='127.0.0.1',
-                 trackerPort=6789, **args,):
-        '''
-        args must contains the following items:
-                1. info_hash
-                2. peer_id
-                3. downloaded
-                4. left
-                5. uploaded
-                6. event
-                7. key
-                8. num_want
-        '''
+    def __init__(self, ipstr='127.0.0.1',
+                 port=56789, trackerIpstr='127.0.0.1',
+                 trackerPort=56789, **args,):
+
         super(RequestClient, self).__init__()
+        # data to transfer
         self.protocol_id = args['protocol_id']
 
         self.info_hash = args['info_hash']
@@ -41,6 +42,8 @@ class RequestClient(DatagramProtocol):
         self.key = args['key']
         self.num_want = args['num_want']
 
+        # data to use
+        self.clientPort = args['clientPort']
         self.interval = 0
         self.transaction_id = 0
         self.connection_id = 0
@@ -62,9 +65,15 @@ class RequestClient(DatagramProtocol):
         self.peerList = {}
         self.connected = False
 
+        self.portSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.portSocket.setblocking(False)
+        self.portSocket.bind(('127.0.0.1', self.clientPort))
+        self.portSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        # start the reactor with a sentence and connect to the tracket
     def startProtocol(self):
         print("The requestClient is running")
-        connect()
+        self.connect()
 
     def stopProtocol(self):
         print("The requestClient is stopped")
@@ -84,7 +93,7 @@ class RequestClient(DatagramProtocol):
                 connection_idRecv = struct.unpack("!q", datagram[8:])
                 self.connection_id = connection_idRecv
                 self.connected = True
-                announce()
+                self.announce()
                 reactor.callLater(60, self.connect())
             # announce response
             elif(actionRecv == 1):
@@ -97,20 +106,23 @@ class RequestClient(DatagramProtocol):
                 for i in range(0, sizeOfpeerList):
                     (ip, port) = struct.unpack(
                         "!ih", datagram[12 + i * 6:12 + (i + 1) * 6])
-                    self.peerList.append((ip, port))
+                    self.peerList.append((ip2int(ip), port))
 
     def connect(self):
         self.retransTimesConn += 1
+        print("connecting, the %dth try" % self.retransTimesConn)
         self.transaction_id = random.randint(0, 2 * 32 - 1)
         action = 0
         packet = struct.pack(
-            connectReqFormat, self.protocol_id, action, self.transaction_id)
+            self.connectReqFormat, self.protocol_id,
+            action, self.transaction_id)
         self.transport.write(packet, (self.trackerIpstr, trackerPort))
         self.retransConn = reactor.callLater(
             15 * 2**self.retransTimesConn, self.connect)
 
     def announce(self):
         self.retransAnnoun += 1
+        print("announcing, the %dth try" % self.retransTimesAnnoun)
         self.transaction_id = randint(0, 2**32 - 1)
         packet = struct.pack(announceReqFormat, self.connection_id, 1,
                              self.transaction_id, self.info_hash,
@@ -124,6 +136,24 @@ class RequestClient(DatagramProtocol):
 
 if __name__ == '__main__':
     trackerIpstr = '127.0.0.1'
-    trackerPort = 6789
-    reactor.listenUDP(trackerPort, RequestClient(), trackerIpstr)
+    protocol_id = 1
+    trackerPort = 56789
+    clientPort = 56788
+    info_hash = 0
+    peer_id = 0
+    downloaded = 0
+    left = 0
+    uploaded = 0
+    event = 0
+    key = 0
+    num_want = 0
+
+    reqClient = RequestClient(clientPort=clientPort,
+                              protocol_id=1, info_hash=info_hash,
+                              peer_id=peer_id,
+                              downloaded=downloaded,
+                              left=left, uploaded=uploaded, event=event,
+                              key=key, num_want=num_want)
+    port = reactor.adoptDatagramPort(
+        reqClient.portSocket.fileno(), socket.AF_INET, reqClient)
     reactor.run()
