@@ -79,6 +79,8 @@ class RequestClient(DatagramProtocol):
 
     def stopProtocol(self):
         print("The requestClient is stopped")
+        self.portSocket.close()
+#        reactor.stop()
         
 
     def datagramReceived(self, datagram, addr):
@@ -117,7 +119,7 @@ class RequestClient(DatagramProtocol):
                 for i in range(0, sizeOfpeerList):
                     (ip, port) = struct.unpack(
                         "!ih", datagram[12 + i * 6:12 + (i + 1) * 6])
-                    self.peerList.append((utils.ip2int(ip), port))
+                    self.peerList.append((utils.int2ip(ip), port))
                 self.intervalAnnounce = reactor.callLater(self.interval, self.announce)
     
     '''
