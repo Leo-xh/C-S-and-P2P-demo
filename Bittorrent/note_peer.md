@@ -1,14 +1,10 @@
 # Implementation Notes on Peer
 
 ## Constraint (temporarily)
-- no choking
-- interested = "he has what I'm lacking" 
-    - *in fact, the interest state is senseless on no-choking condition*
-- initial state of a peer: not choking, uninterested
+- ignore the peer states
 - peer id used as a unique key for a peer, a collision with active peers' ids or own id is unacceptable
 - AT MOST one `Request` is sent for a missing piece
     - the cap on the size of any request list is 1
-    - the chosen 
     - no `Cancel` is needed
 
 ## Strategy
@@ -22,20 +18,20 @@
     - peer list is the list received from tracker
     - active peer list is the list of connected peers
     - active peer list records:
-        - the states of the peers
         - the bitfields of the peers
-        - the time of last message sent / received
+        - the time of last message sent / received ?
     - there is a cap on the number of active peers
 - request list
     - each piece has a request list, which records the peers that we will send `Request` to
     - there is a cap on the size of a request list
     - there is a cap on the total size of all request lists
-    - a counter (request count) is maintained
+    - a global counter (request count) is maintained
 - piece list
     - for each piece, records:
         - have/not have this piece
         - request list
         - the state of each block
+        - the received data
     - a block state can be:
         - `Request` not sent
         - `Request` sent, not received
@@ -56,7 +52,6 @@
         - invalid: abort connection
 - receive a `Bitfield`
     - update the bitfield of this peer
-    - send `Interested` if needed
     - if have not sent a `Bitfield` to this peer before, send one
 
 ### Keeping and Ending Connection
@@ -67,12 +62,6 @@
 - connection lost
     - remove the peer from active peer list
     - remove the peer from all request lists, update the request count
-
-### Peer State
-- receive `Interested`
-    - do nothing
-- receive `Uninterested`
-    - do nothing
 
 ### Data
 - every few seconds
@@ -94,9 +83,10 @@
     3. check whether the piece downloading is finished
 - finish downloading a piece
     - validate the piece
-        - valid: write to file, update the piece state, send `Have` to all of its peers, send `Uninterested` if needed
-        - invalid: remove the peer from the request list of this piec, reset the block states
+        - valid: write to file, update the piece state, send `Have` to all of its peers, check if the download finishes
+        - invalid: remove the peer from the request list of this piece, reset the block states
     - update the request count
+- finish downloading the file
+    - print message
 - receive a `Have`
     - update the bitfield of this peer
-    - send `Interested` if needed
