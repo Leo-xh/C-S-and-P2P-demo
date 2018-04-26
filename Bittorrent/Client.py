@@ -140,7 +140,6 @@ class RequestClient(DatagramProtocol):
         12      32-bit integer  transaction_id
         '''
         self.retransTimesConn += 1
-        
         print("connecting, the %dth try" % self.retransTimesConn)
         self.transaction_id = random.randint(0, 2 * 32 - 1)
         action = 0
