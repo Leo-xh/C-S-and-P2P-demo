@@ -1,0 +1,12 @@
+\contentsline {section}{\numberline {1}项目介绍}{2}{section.1}
+\contentsline {section}{\numberline {2}C/S通信}{2}{section.2}
+\contentsline {subsection}{\numberline {2.1}协议设计}{2}{subsection.2.1}
+\contentsline {section}{\numberline {3}P2P通信}{2}{section.3}
+\contentsline {subsection}{\numberline {3.1}协议设计}{2}{subsection.3.1}
+\contentsline {section}{\numberline {4}安装和部署}{2}{section.4}
+\contentsline {section}{\numberline {5}结果}{2}{section.5}
+\contentsline {subsection}{\numberline {5.1}结果展示}{2}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}对比}{2}{subsection.5.2}
+\contentsline {section}{\numberline {6}总结}{2}{section.6}
+\contentsline {section}{\numberline {7}项目管理记录}{2}{section.7}
+\contentsline {section}{\numberline {A}参考文献}{3}{附录.a.A}
