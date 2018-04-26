@@ -54,7 +54,7 @@ class RequestClient(DatagramProtocol):
         self.connection_id = 0
         self.connectReqFormat = "!qii"
         self.connectRecvFormat = "!iiq"
-        self.announceReqFormat = "!qii20s20sqqqiiiih"
+        self.announceReqFormat = "!qii20s20sqqqiiiiH"
         self.announceRecvFormat = "!iii"  # following N (ip-port) turples
 
         self.retransConn = None
@@ -81,8 +81,9 @@ class RequestClient(DatagramProtocol):
         print("The requestClient is stopped")
         self.portSocket.close()
 #        reactor.stop()
+    def expired(self):
+        self.connected = False        
         
-
     def datagramReceived(self, datagram, addr):
         '''
         Receive the packet.
@@ -104,23 +105,24 @@ class RequestClient(DatagramProtocol):
                 self.retransTimesConn = -1
                 self.retransConn.cancel()
                 connection_idRecv = struct.unpack("!q", datagram[8:])
-                self.connection_id = connection_idRecv
+                self.connection_id = connection_idRecv[0]
                 self.connected = True
                 self.announce()
-                reactor.callLater(60, self.connect())
+                reactor.callLater(60, self.expired)
             # announce response
             elif(actionRecv == 1):
                 self.retransTimesAnnoun = -1
                 self.retransAnnoun.cancel()
                 self.peerList = {}
                 intervalRecv = struct.unpack("!q", datagram[8:12])
-                self.interval = intervalRecv
+                self.interval = intervalRecv[0]
                 sizeOfpeerList = (len(datagram) - 12) / 6
                 for i in range(0, sizeOfpeerList):
                     (ip, port) = struct.unpack(
                         "!ih", datagram[12 + i * 6:12 + (i + 1) * 6])
                     self.peerList.append((utils.int2ip(ip), port))
-                self.intervalAnnounce = reactor.callLater(self.interval, self.announce)
+                self.intervalAnnounce = reactor.callLater(self.interval,
+                                                          self.announce)
     
     '''
     for connect and announce:
@@ -130,9 +132,14 @@ class RequestClient(DatagramProtocol):
     And control the transmission, the tranmit times.
     '''
     def connect(self):
+        '''
+        Offset  Size            Name            Value
+        0       64-bit integer  protocol_id     0x41727101980 // magic constant
+        8       32-bit integer  action          0 // connect
+        12      32-bit integer  transaction_id
+        '''
         self.retransTimesConn += 1
-        if(self.intervalAnnounce is not None):
-            self.intervalAnnounce.cancel()
+        
         print("connecting, the %dth try" % self.retransTimesConn)
         self.transaction_id = random.randint(0, 2 * 32 - 1)
         action = 0
@@ -144,16 +151,40 @@ class RequestClient(DatagramProtocol):
             15 * 2**self.retransTimesConn, self.connect)
 
     def announce(self):
-        self.retransAnnoun += 1
+        if(not self.connected):
+            self.intervalAnnounce.cancel()
+            self.retransAnnoun.cancel()
+            self.connect()
+            return 
+#            if(self.intervalAnnounce is not None):            
+#            if(self.retransAnnoun is not None):
+        self.retransTimesAnnoun += 1
         print("announcing, the %dth try" % self.retransTimesAnnoun)
-        self.transaction_id = random.randint(0, 2**32 - 1)
+        self.transaction_id = random.randint(0, 2**31 - 1)
+        '''
+        Offset  Size    Name    Value
+        0       64-bit integer  connection_id
+        8       32-bit integer  action           1 // announce
+        12      32-bit integer  transaction_id
+        16      20-byte string  info_hash
+        36      20-byte string  peer_id
+        56      64-bit integer  downloaded
+        64      64-bit integer  left
+        72      64-bit integer  uploaded
+        80      32-bit integer  event            0 // 0: none;    1: completed; 
+                                                     2: started; 3: stopped;
+        84      32-bit integer  IP address       0 // default
+        88      32-bit integer  key
+        92      32-bit integer  num_want         -1 // default
+        96      16-bit integer  port
+        '''
         packet = struct.pack(self.announceReqFormat, self.connection_id, 1,
-                             self.transaction_id, self.info_hash,
-                             self.peer_id, self.downloaded, self.left,
+                             self.transaction_id, self.info_hash.encode(),
+                             self.peer_id.encode(), self.downloaded, self.left, self.uploaded,
                              self.event, self.clientIP, self.key, self.num_want,
                              self.clientPort)
         self.transport.write(packet, (self.trackerIpstr, self.trackerPort))
-        self.retransTimesAnnoun = reactor.callLater(
+        self.retransAnnoun = reactor.callLater(
             15 * 2**self.retransTimesAnnoun, self.announce)
 
 
@@ -163,8 +194,8 @@ if __name__ == '__main__':
     clientPort = 56777
     
     protocol_id = 1
-    info_hash = 0
-    peer_id = 0
+    info_hash = '0'
+    peer_id = '0'
     downloaded = 0
     left = 0
     uploaded = 0
