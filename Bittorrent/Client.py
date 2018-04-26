@@ -5,6 +5,13 @@ import utils
 from twisted.internet import reactor
 from twisted.internet.protocol import DatagramProtocol
 
+import time
+begin = time.time()
+
+
+def printTime():
+    print("t = %d, " % (time.time() - begin), end='')
+
 
 class RequestClient(DatagramProtocol):
     ''' connect to the tracker and get response
@@ -25,8 +32,7 @@ class RequestClient(DatagramProtocol):
         9. protocol_id
     '''
 
-    def __init__(self, trackerIpstr='127.0.0.1',
-                 trackerPort=56789, **args,):
+    def __init__(self, trackerIpstr='127.0.0.1', trackerPort=56789, **args):
 
         super(RequestClient, self).__init__()
         # data to transfer
@@ -48,13 +54,13 @@ class RequestClient(DatagramProtocol):
         self.trackerIpstr = trackerIpstr
         self.trackerIp = utils.ip2int(self.trackerIpstr)
         self.trackerPort = trackerPort
-        
+
         self.interval = 0
         self.transaction_id = 0
         self.connection_id = 0
-        self.connectReqFormat = "!qii"
-        self.connectRecvFormat = "!iiq"
-        self.announceReqFormat = "!qii20s20sqqqiiiiH"
+        self.connectReqFormat = "!QII"
+        self.connectRecvFormat = "!IIQ"
+        self.announceReqFormat = "!QII20s20sQQQIIIIH"
         self.announceRecvFormat = "!iii"  # following N (ip-port) turples
 
         self.retransConn = None
@@ -64,13 +70,12 @@ class RequestClient(DatagramProtocol):
         self.peerList = {}
         self.connected = False
         self.intervalAnnounce = None
-        
+
         # socket for the client
         self.portSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.portSocket.setblocking(False)
         self.portSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.portSocket.bind((self.clientIpstr, self.clientPort))
- 
 
         # start the reactor with a sentence and connect to the tracket
     def startProtocol(self):
@@ -80,10 +85,13 @@ class RequestClient(DatagramProtocol):
     def stopProtocol(self):
         print("The requestClient is stopped")
         self.portSocket.close()
+
+
 #        reactor.stop()
+
     def expired(self):
-        self.connected = False        
-        
+        self.connected = False
+
     def datagramReceived(self, datagram, addr):
         '''
         Receive the packet.
@@ -93,38 +101,44 @@ class RequestClient(DatagramProtocol):
         Store the connection ID and interval for future use.
         Do not announce again until interval seconds have passed.
         '''
-        if(len(datagram) < 16 or
-                (self.connected is True and len(datagram) < 20)):
+        if (len(datagram) < 16
+                or (self.connected is True and len(datagram) < 12)):
             return
-        dataRecv = struct.unpack("!ii", datagram[:8])
+        dataRecv = struct.unpack("!II", datagram[:8])
         actionRecv = dataRecv[0]
         transaction_idRecv = dataRecv[1]
-        if(transaction_idRecv == self.transaction_id):
+        if (transaction_idRecv == self.transaction_id):
             # connect response
-            if(actionRecv == 0):
+            if (actionRecv == 0):
                 self.retransTimesConn = -1
+                self.retransTimesAnnoun = -1
                 self.retransConn.cancel()
-                connection_idRecv = struct.unpack("!q", datagram[8:])
+                connection_idRecv = struct.unpack("!Q", datagram[8:])
                 self.connection_id = connection_idRecv[0]
                 self.connected = True
                 reactor.callLater(60, self.expired)
                 self.announce()
-                
+
             # announce response
-            elif(actionRecv == 1):
+            elif (actionRecv == 1):
+                print("announce response")
+                self.retransTimesConn = -1
                 self.retransTimesAnnoun = -1
                 self.retransAnnoun.cancel()
-                self.peerList = {}
-                intervalRecv = struct.unpack("!q", datagram[8:12])
+                self.peerList = []
+                intervalRecv = struct.unpack("!I", datagram[8:12])
                 self.interval = intervalRecv[0]
-                sizeOfpeerList = (len(datagram) - 12) / 6
+                sizeOfpeerList = (len(datagram) - 12) // 6
                 for i in range(0, sizeOfpeerList):
                     (ip, port) = struct.unpack(
-                        "!ih", datagram[12 + i * 6:12 + (i + 1) * 6])
+                        "!IH", datagram[12 + i * 6:12 + (i + 1) * 6])
                     self.peerList.append((utils.int2ip(ip), port))
-                self.intervalAnnounce = reactor.callLater(self.interval,
-                                                          self.announce)
-    
+                for peerAddr in self.peerList:
+                    print(peerAddr)
+                print("\n")
+                self.intervalAnnounce = reactor.callLater(
+                    self.interval, self.announce)
+
     '''
     for connect and announce:
     Choose a random transaction ID.
@@ -132,6 +146,7 @@ class RequestClient(DatagramProtocol):
     Send the packet.
     And control the transmission, the tranmit times.
     '''
+
     def connect(self):
         '''
         Offset  Size            Name            Value
@@ -140,27 +155,34 @@ class RequestClient(DatagramProtocol):
         12      32-bit integer  transaction_id
         '''
         self.retransTimesConn += 1
+        printTime()
         print("connecting, the %dth try" % self.retransTimesConn)
         self.transaction_id = random.randint(0, 2 * 32 - 1)
         action = 0
-        packet = struct.pack(
-            self.connectReqFormat, self.protocol_id,
-            action, self.transaction_id)
+        packet = struct.pack(self.connectReqFormat, self.protocol_id, action,
+                             self.transaction_id)
         self.transport.write(packet, (self.trackerIpstr, self.trackerPort))
-        self.retransConn = reactor.callLater(
-            15 * 2**self.retransTimesConn, self.connect)
+        self.retransConn = reactor.callLater(15 * 2**self.retransTimesConn,
+                                             self.connect)
+        if (self.retransTimesConn == 8):  # reset retransTimesConn
+            self.retransTimesConn = -1
 
     def announce(self):
-        if(not self.connected):
-            self.intervalAnnounce.cancel()
-            self.retransAnnoun.cancel()
+        if (not self.connected):
+            if (self.intervalAnnounce is not None
+                    and self.intervalAnnounce.active()):
+                self.intervalAnnounce.cancel()
+            if (self.retransAnnoun is not None
+                    and self.retransAnnoun.active()):
+                self.retransAnnoun.cancel()
             self.connect()
-            return 
-#            if(self.intervalAnnounce is not None):            
-#            if(self.retransAnnoun is not None):
+            return
+        #    if(self.intervalAnnounce is not None):
+        #    if(self.retransAnnoun is not None):
         self.retransTimesAnnoun += 1
-        if(self.retransTimesAnnoun > 0):
-            self.retransAnnoun.cancel()
+        # if (self.retransTimesAnnoun > 0):
+        #     self.retransAnnoun.cancel()
+        printTime()
         print("announcing, the %dth try" % self.retransTimesAnnoun)
         self.transaction_id = random.randint(0, 2**31 - 1)
         '''
@@ -182,19 +204,22 @@ class RequestClient(DatagramProtocol):
         '''
         packet = struct.pack(self.announceReqFormat, self.connection_id, 1,
                              self.transaction_id, self.info_hash.encode(),
-                             self.peer_id.encode(), self.downloaded, self.left, self.uploaded,
-                             self.event, self.clientIP, self.key, self.num_want,
-                             self.clientPort)
+                             self.peer_id.encode(), self.downloaded, self.left,
+                             self.uploaded, self.event, self.clientIP,
+                             self.key, self.num_want, self.clientPort)
         self.transport.write(packet, (self.trackerIpstr, self.trackerPort))
-        self.retransAnnoun = reactor.callLater(
-            15 * 2**self.retransTimesAnnoun, self.announce)
-
+        # reset the Timer
+        if (self.retransAnnoun is not None and self.retransAnnoun.active()):
+            self.retransAnnoun.cancel()
+        self.retransAnnoun = reactor.callLater(15 * 2**self.retransTimesAnnoun,
+                                               self.announce)
 
 if __name__ == '__main__':
 
     clientIpstr = '127.0.0.1'
-    clientPort = 56777
-    
+    # clientPort = 56777
+    clientPort = random.randint(10000, 60000)
+
     protocol_id = 1
     info_hash = '0'
     peer_id = '0'
@@ -205,14 +230,19 @@ if __name__ == '__main__':
     key = 0
     num_want = 0
 
-    reqClient = RequestClient(clientIpstr=clientIpstr,
-                              clientPort=clientPort,
-                              protocol_id=1, info_hash=info_hash,
-                              peer_id=peer_id,
-                              downloaded=downloaded,
-                              left=left, uploaded=uploaded, event=event,
-                              key=key, num_want=num_want)
+    reqClient = RequestClient(
+        clientIpstr=clientIpstr,
+        clientPort=clientPort,
+        protocol_id=1,
+        info_hash=info_hash,
+        peer_id=peer_id,
+        downloaded=downloaded,
+        left=left,
+        uploaded=uploaded,
+        event=event,
+        key=key,
+        num_want=num_want)
     # in order to adopt a reusable port
-    port = reactor.adoptDatagramPort(
-        reqClient.portSocket.fileno(), socket.AF_INET, reqClient)
+    port = reactor.adoptDatagramPort(reqClient.portSocket.fileno(),
+                                     socket.AF_INET, reqClient)
     reactor.run()
