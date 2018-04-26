@@ -12,6 +12,7 @@ trackerPort = 56789
 peerList = b''  # the peers' list of compate format
 peerTimer = {}  # the dict of peers' timer with their connection id as key
 peerConnectID = []  # the list of peers' connection id
+peerAddrAndConnID = {}  # the peer address and their only connectionID
 
 
 class service(DatagramProtocol):
@@ -30,10 +31,8 @@ class service(DatagramProtocol):
             packet = struct.pack("!IIQ", action, transactionID, connectionID)
             self.transport.write(packet, recvAddr)  # send response to recvAddr
             # set a timer(120s) for the connet request
-            peerTimer[connectionID] = threading.Timer(1, connectRequestTimeOut,
-                                                      [connectionID])
-            # peerTimer[connectionID] = threading.Timer(
-            #     120, connectRequestTimeOut, [connectionID])
+            peerTimer[connectionID] = threading.Timer(
+                120, connectRequestTimeOut, [connectionID])
             peerTimer[connectionID].start()
 
         elif action == 1:  # announce response
@@ -49,35 +48,47 @@ class service(DatagramProtocol):
                   recvAddr)
             peerTimer[connectionID].cancel()
             if connectionID not in peerConnectID:
-                ip, port = recvAddr  # need the external ip
-                for num in ip.split('.'):
-                    peerList += struct.pack('!B', int(num))
-                peerList += recvPacket[96:98]
-                peerConnectID.append(connectionID)
+                peerIP = recvAddr[0]  # need the external ip
+                peerPort = (struct.unpack('!H', recvPacket[96:98]))[0]
+                peerAddr = peerIP + ":" + str(peerPort)
+
+                if peerAddr not in peerAddrAndConnID:
+                    for num in peerIP.split('.'):
+                        peerList += struct.pack('!B', int(num))
+                    peerList += recvPacket[96:98]
+                    peerConnectID.append(connectionID)
+
+                else:  # replace peer's connectionID
+                    connectionID_bak = peerAddrAndConnID[peerAddr]
+                    peerTimer[connectionID_bak].cancel()
+                    del peerTimer[connectionID_bak]
+                    index = peerConnectID.index(connectionID_bak)
+                    peerConnectID[index] = connectionID
+
+                peerAddrAndConnID[peerAddr] = connectionID
 
             interval = 30
             packet = struct.pack("!III", action, transactionID, interval)
             packet += peerList
             self.transport.write(packet, recvAddr)  # send peerList to client
-
-            peerTimer[connectionID] = threading.Timer(2, peerRemove,
+            peerTimer[connectionID] = threading.Timer(2 * interval, peerRemove,
                                                       [connectionID])
-            # peerTimer[connectionID] = threading.Timer(2 * interval, peerRemove,
-            #                                           [connectionID])
             peerTimer[connectionID].start()
 
 
 def peerRemove(connectionID):
     ''' rm the peer from peerList and peerListAddrList '''
     global peerList, peerTimer, peerConnectID
-    index = peerConnectID.index(connectionID)
-    peerConnectID.remove(connectionID)
-    peerList = peerList[0:(index * 6)] + peerList[((index + 1) * 6):]
-    del peerTimer[connectionID]
+    if connectionID in peerConnectID:
+        index = peerConnectID.index(connectionID)
+        peerConnectID.remove(connectionID)
+        peerList = peerList[0:(index * 6)] + peerList[((index + 1) * 6):]
+        del peerTimer[connectionID]
 
 
 def connectRequestTimeOut(connectionID):
     del peerTimer[connectionID]
+    peerRemove(connectionID)
 
 
 def generateConnectionID():  # generate a 64-bits connection id
