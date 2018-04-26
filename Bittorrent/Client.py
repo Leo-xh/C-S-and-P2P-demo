@@ -159,6 +159,8 @@ class RequestClient(DatagramProtocol):
 #            if(self.intervalAnnounce is not None):            
 #            if(self.retransAnnoun is not None):
         self.retransTimesAnnoun += 1
+        if(self.retransTimesAnnoun > 0):
+            self.retransAnnoun.cancel()
         print("announcing, the %dth try" % self.retransTimesAnnoun)
         self.transaction_id = random.randint(0, 2**31 - 1)
         '''
