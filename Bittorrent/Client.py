@@ -107,8 +107,9 @@ class RequestClient(DatagramProtocol):
                 connection_idRecv = struct.unpack("!q", datagram[8:])
                 self.connection_id = connection_idRecv[0]
                 self.connected = True
-                self.announce()
                 reactor.callLater(60, self.expired)
+                self.announce()
+                
             # announce response
             elif(actionRecv == 1):
                 self.retransTimesAnnoun = -1
