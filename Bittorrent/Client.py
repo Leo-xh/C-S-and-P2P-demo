@@ -61,7 +61,7 @@ class RequestClient(DatagramProtocol):
         self.connectReqFormat = "!QII"
         self.connectRecvFormat = "!IIQ"
         self.announceReqFormat = "!QII20s20sQQQIIIIH"
-        self.announceRecvFormat = "!iii"  # following N (ip-port) turples
+        self.announceRecvFormat = "!III"  # following N (ip-port) turples
 
         self.retransConn = None
         self.retransTimesConn = -1
@@ -121,7 +121,6 @@ class RequestClient(DatagramProtocol):
 
             # announce response
             elif (actionRecv == 1):
-                print("announce response")
                 self.retransTimesConn = -1
                 self.retransTimesAnnoun = -1
                 self.retransAnnoun.cancel()
@@ -133,9 +132,9 @@ class RequestClient(DatagramProtocol):
                     (ip, port) = struct.unpack(
                         "!IH", datagram[12 + i * 6:12 + (i + 1) * 6])
                     self.peerList.append((utils.int2ip(ip), port))
-                for peerAddr in self.peerList:
-                    print(peerAddr)
-                print("\n")
+                # for peerAddr in self.peerList:
+                #     print(peerAddr)
+                # print("\n")
                 self.intervalAnnounce = reactor.callLater(
                     self.interval, self.announce)
 
