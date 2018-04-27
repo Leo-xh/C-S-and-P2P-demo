@@ -30,11 +30,13 @@ class RequestClient(DatagramProtocol):
         7. key
         8. num_want
         9. protocol_id
+    ClientIpStr is the listening TCP ip, and ClientPort is the corresponding port.
     '''
 
-    def __init__(self, trackerIpstr='127.0.0.1', trackerPort=56789, **args):
+    def __init__(self, peer, trackerIpstr='127.0.0.1', trackerPort=56789, **args):
 
         super(RequestClient, self).__init__()
+        self.peer = peer
         # data to transfer
         self.protocol_id = args['protocol_id']
 
@@ -67,7 +69,7 @@ class RequestClient(DatagramProtocol):
         self.retransTimesConn = -1
         self.retransAnnoun = None
         self.retransTimesAnnoun = -1
-        self.peerList = {}
+        self.peerList = []
         self.connected = False
         self.intervalAnnounce = None
 
@@ -135,6 +137,7 @@ class RequestClient(DatagramProtocol):
                 # for peerAddr in self.peerList:
                 #     print(peerAddr)
                 # print("\n")
+                self.peer.peerListReceived(self.peerList)
                 self.intervalAnnounce = reactor.callLater(
                     self.interval, self.announce)
 
@@ -230,6 +233,7 @@ if __name__ == '__main__':
     num_want = 0
 
     reqClient = RequestClient(
+        peer
         clientIpstr=clientIpstr,
         clientPort=clientPort,
         protocol_id=1,
