@@ -4,6 +4,7 @@ from twisted.internet.protocol import Protocol
 from peer import Peer
 from bitstring import BitArray
 
+
 class PeerProtocol(Protocol):
 
     def __init__(self, peer):
