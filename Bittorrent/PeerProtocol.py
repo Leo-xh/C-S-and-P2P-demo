@@ -1,7 +1,7 @@
 import struct
 import utils
 from twisted.internet.protocol import Protocol
-from peer import Peer
+from Peer import Peer
 from bitstring import BitArray
 
 
@@ -20,37 +20,37 @@ class PeerProtocol(Protocol):
         self.recvBuff = b''
         # xh adds, used to denote that handshake is finished
         self.shaked = False
-        self.shakeSend = False
+        self.shakeSent = False
 
-    def __handshake(self):
+    def _handshake(self):
         print("shaking")
-        packet = struct.pack(formatForHandshake, self.MsgLen,
-                             formatForHandshake.encode(), bytes(8),
-                             self.peer.__getInfoHash().encode(),
-                             self.peer.__getpeerID().encode())
+        packet = struct.pack(self.formatForHandshake, self.MsgLen,
+                             self.protocolName.encode(), bytes(8),
+                             self.peer._getInfoHash().encode(),
+                             self.peer._getpeerID().encode())
         self.transport.write(packet)
-        self.shakeSend = True
+        self.shakeSent = True
 
-    def __sendBitfield(self):
+    def _sendBitfield(self):
         print("sending bitfield")
-        LenOfBitfield = len(self.peer.__getBitfield()) + 1
+        LenOfBitfield = len(self.peer._getBitfield()) + 1
         packet = struct.pack(
-            (formatForHandshake + "%ds") % LenOfBitfield,
-            self.msgLenOfBitfield + 1, 5, self.peer.__getBitfield())
+            (self.formatMessageHead + "%ds") % LenOfBitfield,
+            LenOfBitfield + 1, 5, self.peer._getBitfield())
         self.transport.write(packet)
         self.bitfieldSent = True
 
-    def __sendHave(self, pieceIndex):
+    def _sendHave(self, pieceIndex):
         print("sending Have")
-        packet = struct.pack(formatForHandshake, 5, 4, pieceIndex)
+        packet = struct.pack(self.formatMessageHead+'I', 5, 4, pieceIndex)
         self.transport.write(packet)
 
-    def __sendRequest(self, pieceIndex, blockOffset, blockLength):
+    def _sendRequest(self, pieceIndex, blockOffset, blockLength):
         packet = struct.pack("!IBIII", 13, 6, pieceIndex, blockOffset,
                              blockLength)
         self.transport.write(packet)
 
-    def __sendPiece(self, pieceIndex, blockOffset, blockData):
+    def _sendPiece(self, pieceIndex, blockOffset, blockData):
         packet = struct.pack("!BII%ds" % len(blockData), 7, pieceIndex,
                              blockOffset, blockData)
         packet = struct.pack("!I", len(packet)) + packet
@@ -58,7 +58,7 @@ class PeerProtocol(Protocol):
 
     def connectionMade(self):
         print("Handshaking to ", self.transport.getPeer())
-        self.__handshake()
+        self._handshake()
 
     def connectionLost(self):
         print("connection Lost")
@@ -70,7 +70,7 @@ class PeerProtocol(Protocol):
         if self.shaked == False:  # handshake
             if len(self.recvBuff) >= struct.unpack("!B",
                                                    self.recvBuff)[0] + 49:
-                if self.shakeSend == False:  # handshake recv
+                if self.shakeSent == False:  # handshake recv
                     self.handshakeReceived()
                 else:  # handshake reply recv
                     self.handshakeReplyReceived()
@@ -95,19 +95,19 @@ class PeerProtocol(Protocol):
         #        else:
         (self.msgLen, protocolNameRecv,
          reserved, infohashRecv, peerIDRecv) = struct.unpack(
-             formatForHandshake, self.recvBuff[0:self.msgLen + 49])
+             self.formatForHandshake, self.recvBuff[0:self.msgLen + 49])
         protocolNameRecv = protocolNameRecv.decode()
         peerIDRecv = peerIDRecv.decode()
         infohashRecv = infohashRecv.decode()
-        if ((protocolNameRecv != protocolName)
-                or (infohashRecv != self.peer.__getInfoHash())
-                or (peerIDRecv == self.peer.__getpeerID())):
+        if ((protocolNameRecv != self.protocolName)
+                or (infohashRecv != self.peer._getInfoHash())
+                or (peerIDRecv == self.peer._getpeerID())):
             self.transport.abortConnection()
             print("handshake fail")
         else:
             self.recvBuff = self.recvBuff[self.msgLen + 49:]
             print("handshake received")
-            self.__handshake()
+            self._handshake()
             self.shaked = True
 
     def handshakeReplyReceived(self):
@@ -119,20 +119,20 @@ class PeerProtocol(Protocol):
         #        else:
         (self.msgLen, protocolNameRecv,
          reserved, infohashRecv, peerIDRecv) = struct.unpack(
-             formatForHandshake, self.recvBuff[0:self.msgLen + 49])
+             self.formatForHandshake, self.recvBuff[0:self.msgLen + 49])
         protocolNameRecv = protocolNameRecv.decode()
         peerIDRecv = peerIDRecv.decode()
         infohashRecv = infohashRecv.decode()
-        if ((protocolNameRecv != protocolName)
-                or (infohashRecv != self.peer.__getInfoHash())
-                or (peerIDRecv == self.peer.__getpeerID())):
+        if ((protocolNameRecv != self.protocolName)
+                or (infohashRecv != self.peer._getInfoHash())
+                or (peerIDRecv == self.peer._getpeerID())):
             self.transport.abortConnection()
             print("handshake fail")
         else:
             self.recvBuff = self.recvBuff[self.msgLen + 49:]
             print("handshake finished")
             self.shaked = True
-            self.__sendBitfield()
+            self._sendBitfield()
 
     def bitfieldReceived(self):
         print("bitfield Received")
@@ -144,15 +144,15 @@ class PeerProtocol(Protocol):
                                           self.recvBuff[5:self.msgLen + 4])[0]
         self.recvBuff = self.recvBuff[self.msgLen + 4:]
         if (self.bitfieldSent == False):
-            self.__sendBitfield()
+            self._sendBitfield()
 
     def requestReceived(self):
         # message ID is 6
         pieceIndex, blockOffset, blockLen = struct.unpack("!III",
                                                        self.recvBuff[5:17])
         self.recvBuff = self.recvBuff[17:]
-        blockData = self.peer.__getBlockData(pieceIndex, blockOffset, blockLen)
-        self.__sendPiece(pieceIndex, blockOffset, blockData)
+        blockData = self.peer._getBlockData(pieceIndex, blockOffset, blockLen)
+        self._sendPiece(pieceIndex, blockOffset, blockData)
 
     def haveReceived(self):
         print("Have receive")
@@ -172,4 +172,4 @@ class PeerProtocol(Protocol):
         pieceIndex, blockOffset = struct.unpack("!II", self.recvBuff[5:13])
         pieceData = self.recvBuff[13:self.msgLen + 4]
         self.recvBuff = self.recvBuff[self.msgLen + 4:]
-        self.peer.__pieceFinished(pieceIndex, blockOffset, pieceData)
+        self.peer._pieceFinished(pieceIndex, blockOffset, pieceData)

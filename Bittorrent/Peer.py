@@ -10,8 +10,8 @@ MAX_NUM_REQUESTS_PER_PIECE = 1
 
 
 class ActivePeer():
-    def __init__(self, peerId, protocol):
-        self.peerId = peerId
+    def __init__(self, peerID, protocol):
+        self.peerID = peerID
         self.bitfield = 0
         self.protocol = protocol
 
@@ -25,12 +25,12 @@ class Piece():
             self.dataReceived = False
             self.data = None
 
-    def __init__(self, pieceId):
-        self.pieceId = pieceId
+    def _init_(self, pieceIndex):
+        self.pieceIndex = pieceIndex
         self.have = False
         self.blockList = []  # a list of blockInfo
         # TODO : initialize the blockList
-        self.requestList = []   # a list of peerId
+        self.requestList = []   # a list of peerID
 
 
 class Peer():
@@ -45,51 +45,51 @@ class Peer():
         self.reactor = reactor
         self.metafile = metafile
         self.downloadFilename = downloadFilename
-        self.bitfield = self.__readBitfieldFromFile(bitfieldFilename)
+        self.bitfield = self._readBitfieldFromFile(bitfieldFilename)
         self.bitfieldFilename = bitfieldFilename
-        self.peerId = self.__generatePeerId()
+        self.peerID = self._generatepeerID()
 
-    def __generatePeerId(self):
+    def _generatepeerID(self):
         # xh adds
         class peerIDCreator(object):
 
-            def __init__(self):
+            def _init_(self):
                 self.version = 1.0
 
-            def getPeerID(self):
+            def getpeerID(self):
                 pid = 'M' + str(self.version).replace('.', '-') + '-'
                 for i in range(0, 20 - len(pid)):
                     pid += chr(random.randint(0, 127))
                 return pid
         pIdCreator = peerIDCreator()
-        return pIdCreator.getPeerID()
+        return pIdCreator.getpeerID()
 
-    def __readBitfieldFromFile(self, filename):
+    def _readBitfieldFromFile(self, filename):
         pass
 
-    def __updateBitfield(self, pieceId, addPiece=True):
+    def _updateBitfield(self, pieceIndex, addPiece=True):
         pass
 
-    def __writePiece(self, piece):  # write a Piece to file
+    def _writePiece(self, piece):  # write a Piece to file
         pass
 
-    def __downloadFinished(self):
+    def _downloadFinished(self):
         pass
 
         # xh adds
-    def __getInfoHash(self):
+    def _getInfoHash(self):
         pass
 
-    def __getPeerId(self):
+    def _getpeerID(self):
         pass
 
-    def __getBitfield(self):
+    def _getBitfield(self):
         pass
 
-    def __getBlockData(self, pieceID, blockOffset, blockLen):
+    def _getBlockData(self, pieceIndex, blockOffset, blockLen):
         pass
 
-    def __pieceFinished(self, pieceId, blockOffset, data):
+    def _pieceFinished(self, pieceIndex, blockOffset, data):
         pass
 
     def peerListReceived(self, peerList):
