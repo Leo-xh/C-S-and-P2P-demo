@@ -83,7 +83,7 @@
     3. check whether the piece downloading is finished
 - finish downloading a piece
     - validate the piece
-        - valid: write to file, update the piece state, send `Have` to all of its peers, check if the download finishes
+        - valid: write to file, update the piece state, send `Have` to all of its peers, check if the download finishes, update bitfield
         - invalid: remove the peer from the request list of this piece, reset the block states
     - update the request count
 - finish downloading the file

@@ -56,17 +56,18 @@ class PeerProtocol(Protocol):
     def handshakeReplyReceived(self, data):
         pass
 
+    def requestReceived(self, data):
+        pass
+
     def bitfieldReceived(self, data):
         pass
 
     def haveReceived(self, data):
         pass
 
-    def pieceReceived(self, data):
+    def pieceReceived(self, data): # if piece download finished, call Peer.pieceFinished
         pass
 
-    def pieceFinished(self, pieceId):
-        pass
 
 
 class PeerFactory(Factory):
@@ -83,14 +84,23 @@ class PeerFactory(Factory):
 
 class Peer():
 
-    def __init__(self, metafile):
+    def __init__(self, metafile, filename, bitfieldFilename='bitfield'):
         self.peerList = []   # same as the one in client
         self.activePeerList = []  # a list of activePeer
         self.requestCount = 0   # total requests
         self.metafile = metafile
-        self.peerId = self.generatePeerId()
+        self.filename = filename
+        self.bitfield = self.__readBitfieldFromFile(bitfieldFilename)
+        self.bitfieldFilename = bitfieldFilename
+        self.peerId = self.__generatePeerId()
 
-    def generatePeerId(self):
+    def __generatePeerId(self):
+        pass
+
+    def __readBitfieldFromFile(self, filename):
+        pass
+
+    def __updateBitfield(self, pieceId, addPiece=True):
         pass
 
     def peerListReceived(self, peerList):
@@ -103,6 +113,15 @@ class Peer():
         pass
 
     def trySendRequest(self):
+        pass
+
+    def pieceFinished(self, pieceId):
+        pass
+
+    def writePiece(self, piece): # write a Piece to file
+        pass
+
+    def downloadFinished(self):
         pass
 
     # TODO : timeout and abort connections
