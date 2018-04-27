@@ -4,13 +4,13 @@ from twisted.internet.interfaces import IReactorTCP
 MAX_NUM_ACTIVE_PEERS = 3
 MAX_NUM_REQUESTS = 10
 MAX_NUM_REQUESTS_PER_PIECE = 1
+
 # NUM_BLOCKS_PER_PIECE = ?
 # BLOCK_SIZE
 # PIECE_SIZE
 
 
 class ActivePeer():
-
     def __init__(self, peerId, protocol):
         self.peerId = peerId
         self.bitfield = 0
@@ -18,9 +18,7 @@ class ActivePeer():
 
 
 class Piece():
-
     class blockInfo():
-
         def __init__(self, offset, size):
             self.offset = offset
             self.size = size
@@ -31,64 +29,20 @@ class Piece():
     def __init__(self, pieceId):
         self.pieceId = pieceId
         self.have = False
-        self.blockList = []     # a list of blockInfo
+        self.blockList = []  # a list of blockInfo
         # TODO : initialize the blockList
-        self.requestList = []   # a list of peerId
-
-
-class PeerProtocol(Protocol):
-
-    def __init__(self, peer):
-        self.peer = peer
-        self.bitfieldSent = False
-
-    def connectionMade(self):
-        pass
-
-    def connectionLost(self):
-        pass
-
-    def dataReceived(self, data):
-        pass
-
-    def handshakeReceived(self, data):
-        pass
-
-    def handshakeReplyReceived(self, data):
-        pass
-
-    def bitfieldReceived(self, data):
-        pass
-
-    def requestReceived(self, data):
-        pass
-
-    def haveReceived(self, data):
-        pass
-
-    def pieceReceived(self, data): # if piece download finished, call Peer.pieceFinished
-        pass
-
-
-
-class PeerFactory(Factory):
-    protocol = PeerProtocol
-
-    def __init__(self, peer):
-        self.peer = peer
-
-    def buildProtocol(self, addr):
-        p = self.protocol(self.peer)
-        p.factory = self
-        return p
+        self.requestList = []  # a list of peerId
 
 
 class Peer():
-
-    def __init__(self, reactor, metafile, downloadFilename, bitfieldFilename='bitfield'):
-        self.peerList = []   # same as the one in client
+    def __init__(self,
+                 reactor,
+                 metafile,
+                 downloadFilename,
+                 bitfieldFilename='bitfield'):
+        self.peerList = []  # same as the one in client
         self.activePeerList = []  # a list of activePeer
-        self.requestCount = 0   # total requests
+        self.requestCount = 0  # total requests
         self.reactor = reactor
         self.metafile = metafile
         self.downloadFilename = downloadFilename
@@ -105,7 +59,7 @@ class Peer():
     def __updateBitfield(self, pieceId, addPiece=True):
         pass
 
-    def __writePiece(self, piece): # write a Piece to file
+    def __writePiece(self, piece):  # write a Piece to file
         pass
 
     def __downloadFinished(self):
@@ -123,6 +77,10 @@ class Peer():
     def trySendRequest(self):
         pass
 
-    def pieceFinished(self, pieceId):
+    def pieceFinished(self, pieceId, blockOffset, data):
         pass
+
     # TODO : timeout and abort connections
+
+    def getBlockData(self, pieceID, blockOffset, blockLen):
+        pass
