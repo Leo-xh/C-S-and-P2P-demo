@@ -123,7 +123,7 @@ class PeerProtocol(Protocol):
         pieceID, blockOffset, blockLen = struct.unpack("!III",
                                                        self.recvBuff[0:12])
         self.recvBuff = self.recvBuff[12:]
-        sendData = self.peer.getBlockData(pieceID, blockOffset, blockLen)
+        sendData = self.peer.__getBlockData(pieceID, blockOffset, blockLen)
         packet = struct.pack("!BII%ds" % (blockLen), 7, pieceID, blockOffset,
                              sendData.decode())  # ?? need decode() ?
         packet = struct.pack("!I", len(packet)) + packet
@@ -142,13 +142,12 @@ class PeerProtocol(Protocol):
 
     def pieceReceived(self):
         # message ID is 7
-        # if piece download finished, call Peer.pieceFinished
         if len(self.recvBuff) < 8 + self.msgLen:
             return
         pieceID, blockOffset = struct.unpack("!II", self.recvBuff[0:8])
         pieceData = self.recvBuff[8:self.msgLen]
         self.recvBuff = self.recvBuff[self.msgLen:]
-        self.peer.pieceFinished(pieceID, blockOffset, pieceData)
+        self.peer.__pieceFinished(pieceID, blockOffset, pieceData)
 
 
 
