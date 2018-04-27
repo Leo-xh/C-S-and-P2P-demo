@@ -5,13 +5,13 @@ import random
 MAX_NUM_ACTIVE_PEERS = 3
 MAX_NUM_REQUESTS = 10
 MAX_NUM_REQUESTS_PER_PIECE = 1
+
 # NUM_BLOCKS_PER_PIECE = ?
 # BLOCK_SIZE
 # PIECE_SIZE
 
 
 class ActivePeer():
-
     def __init__(self, peerId, protocol):
         self.peerId = peerId
         self.bitfield = 0
@@ -19,9 +19,7 @@ class ActivePeer():
 
 
 class Piece():
-
     class blockInfo():
-
         def __init__(self, offset, size):
             self.offset = offset
             self.size = size
@@ -32,7 +30,7 @@ class Piece():
     def __init__(self, pieceId):
         self.pieceId = pieceId
         self.have = False
-        self.blockList = []     # a list of blockInfo
+        self.blockList = []  # a list of blockInfo
         # TODO : initialize the blockList
         self.requestList = []   # a list of peerId
 
@@ -84,11 +82,14 @@ class PeerFactory(Factory):
 
 
 class Peer():
-
-    def __init__(self, reactor, metafile, downloadFilename, bitfieldFilename='bitfield'):
-        self.peerList = []   # same as the one in client
+    def __init__(self,
+                 reactor,
+                 metafile,
+                 downloadFilename,
+                 bitfieldFilename='bitfield'):
+        self.peerList = []  # same as the one in client
         self.activePeerList = []  # a list of activePeer
-        self.requestCount = 0   # total requests
+        self.requestCount = 0  # total requests
         self.reactor = reactor
         self.metafile = metafile
         self.downloadFilename = downloadFilename
@@ -145,6 +146,10 @@ class Peer():
     def trySendRequest(self):
         pass
 
-    def pieceFinished(self, pieceId):
+    def pieceFinished(self, pieceId, blockOffset, data):
         pass
+
     # TODO : timeout and abort connections
+
+    def getBlockData(self, pieceID, blockOffset, blockLen):
+        pass
