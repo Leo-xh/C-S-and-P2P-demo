@@ -1,4 +1,5 @@
 from twisted.internet.protocol import Factory, Protocol
+from twisted.internet.interfaces import IReactorTCP
 
 MAX_NUM_ACTIVE_PEERS = 3
 MAX_NUM_REQUESTS = 10
@@ -56,10 +57,10 @@ class PeerProtocol(Protocol):
     def handshakeReplyReceived(self, data):
         pass
 
-    def requestReceived(self, data):
+    def bitfieldReceived(self, data):
         pass
 
-    def bitfieldReceived(self, data):
+    def requestReceived(self, data):
         pass
 
     def haveReceived(self, data):
@@ -84,12 +85,13 @@ class PeerFactory(Factory):
 
 class Peer():
 
-    def __init__(self, metafile, filename, bitfieldFilename='bitfield'):
+    def __init__(self, reactor, metafile, downloadFilename, bitfieldFilename='bitfield'):
         self.peerList = []   # same as the one in client
         self.activePeerList = []  # a list of activePeer
         self.requestCount = 0   # total requests
+        self.reactor = reactor
         self.metafile = metafile
-        self.filename = filename
+        self.downloadFilename = downloadFilename
         self.bitfield = self.__readBitfieldFromFile(bitfieldFilename)
         self.bitfieldFilename = bitfieldFilename
         self.peerId = self.__generatePeerId()
@@ -103,11 +105,17 @@ class Peer():
     def __updateBitfield(self, pieceId, addPiece=True):
         pass
 
+    def __writePiece(self, piece): # write a Piece to file
+        pass
+
+    def __downloadFinished(self):
+        pass
+
     def peerListReceived(self, peerList):
         self.peerList = peerList
 
     def tryConnectPeer(self):
-        pass
+        pas
 
     def tryAddRequest(self):  # add a peer to a request list
         pass
@@ -117,11 +125,4 @@ class Peer():
 
     def pieceFinished(self, pieceId):
         pass
-
-    def writePiece(self, piece): # write a Piece to file
-        pass
-
-    def downloadFinished(self):
-        pass
-
     # TODO : timeout and abort connections
