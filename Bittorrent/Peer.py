@@ -1,23 +1,25 @@
 import random
+import bencode
+import hashlib
+from bitstring import BitArray
+from math import *
 
 MAX_NUM_ACTIVE_PEERS = 3
 MAX_NUM_REQUESTS = 10
 MAX_NUM_REQUESTS_PER_PIECE = 1
 
-# NUM_BLOCKS_PER_PIECE = ?
-# BLOCK_SIZE
-# PIECE_SIZE
+BLOCK_SIZE = 16384 # 2^14
 
 
-class ActivePeer():
+class ActivePeer(object):
     def __init__(self, peerID, protocol):
         self.peerID = peerID
         self.bitfield = 0
         self.protocol = protocol
 
 
-class Piece():
-    class blockInfo():
+class Piece(object):
+    class blockInfo(object):
         def __init__(self, offset, size):
             self.offset = offset
             self.size = size
@@ -25,12 +27,23 @@ class Piece():
             self.dataReceived = False
             self.data = None
 
-    def _init_(self, pieceIndex):
+    def __init__(self, pieceIndex, pieceLength, SHA1):
         self.pieceIndex = pieceIndex
+        self.pieceLength = pieceLength
+        self.SHA1 = SHA1
         self.have = False
-        self.blockList = []  # a list of blockInfo
+        self.blockList = {}  # a list of blockInfo
+        self._initBlockList()
         # TODO : initialize the blockList
         self.requestList = []   # a list of peerID
+    
+    def _initBlockList(self):
+        for i in range(0, ceil(self.pieceLength/BLOCK_SIZE)):
+            if i != ceil(self.pieceLength/BLOCK_SIZE)-1:
+                self.blockList.update({i*BLOCK_SIZE : self.blockInfo(i*BLOCK_SIZE,BLOCK_SIZE)})
+            else:
+                self.blockList.update({i*BLOCK_SIZE : self.blockInfo(i*BLOCK_SIZE,self.pieceLength - i * BLOCK_SIZE)})
+        
 
 
 class Peer():
@@ -48,7 +61,23 @@ class Peer():
         self.bitfield = self._readBitfieldFromFile(bitfieldFilename)
         self.bitfieldFilename = bitfieldFilename
         self.peerID = self._generatepeerID()
-
+        self.pieceList = []
+        self.file = open(downloadFilename, 'ab')
+        
+    def _initPieceList(self):
+        FileInfo = self.metafile['info']
+        self.info_hash = hashlib.sha1(FileInfo)
+        # pay attention
+        self.fileLength = FileInfo['length']
+        self.md5sum = FileInfo['md5sum']
+        self.name = FileInfo['name']
+        self.pieceLength = FileInfo['piece length']
+        for i in range(0, len(FileInfo['pieces'])/20):
+            if i != len(FileInfo['pieces'])/20 - 1:
+                self.pieceList.append(Piece(i, self.pieceLength, FileInfo['pieces'][i*20:(i+1)*20]))
+            else:
+                self.pieceList.append(Piece(i, len(FileInfo['pieces'])-20*i, FileInfo['pieces'][i*20:]))
+                
     def _generatepeerID(self):
         # xh adds
         class peerIDCreator(object):
@@ -68,30 +97,48 @@ class Peer():
         pass
 
     def _updateBitfield(self, pieceIndex, addPiece=True):
-        pass
+        self.bitfield = BitArray(self.bitfield).set(addPiece, pieceIndex).bytes
 
     def _writePiece(self, piece):  # write a Piece to file
-        pass
+        self.file.seek(piece.pieceIndex * self.pieceLength)
+        blockOffsets = list(piece.blockList.keys()).sort()
+        for offset in blockOffsets:
+            self.file.write(piece.blockList[offset].data)
+        self.file.seek(-piece.pieceIndex * self.pieceLength)
+        for piece in self.pieceList:
+            if piece.have != True:
+                return 
+        self._downloadFinished()
 
     def _downloadFinished(self):
-        pass
+        print(self.downloadFilename, " downloaded.")
 
         # xh adds
     def _getInfoHash(self):
-        pass
+        return self.info_hash
 
     def _getpeerID(self):
-        pass
+        return self.peerID
 
     def _getBitfield(self):
-        pass
+        return self.bitfield
 
+    # need not blockLen
     def _getBlockData(self, pieceIndex, blockOffset, blockLen):
-        pass
+        return self.pieceList[pieceIndex].blockList[blockOffset].data
 
-    def _pieceFinished(self, pieceIndex, blockOffset, data):
-        pass
-
+    def _pieceFinished(self, pieceIndex):
+        self.pieceList[pieceIndex].have = True
+        for activePeer in self.activePeerList:
+            activePeer.protocol._sendHave(pieceIndex)
+        self._writePiece(self.pieceList[pieceIndex])
+    
+    def _blockReceived(self, pieceIndex, blockOffset, data, dataSize):
+        self.pieceList[pieceIndex].blockList[blockOffset].data = data
+        self.pieceList[pieceIndex].blockList[blockOffset].dataReceived = True
+        if self.pieceList[pieceIndex].pieceLength == blockOffset + dataSize:
+            self._pieceFinished(pieceIndex)
+        
     def peerListReceived(self, peerList):
         self.peerList = peerList
 

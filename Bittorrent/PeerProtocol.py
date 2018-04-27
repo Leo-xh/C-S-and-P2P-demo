@@ -13,6 +13,7 @@ class PeerProtocol(Protocol):
 
     def __init__(self, peer):
         self.peer = peer
+        self.bitfield = peer.bitfield
         self.bitfieldSent = False
         self.bitfieldRecv = b''
         self.msgLen = 0  # 4 bytes
@@ -172,4 +173,4 @@ class PeerProtocol(Protocol):
         pieceIndex, blockOffset = struct.unpack("!II", self.recvBuff[5:13])
         pieceData = self.recvBuff[13:self.msgLen + 4]
         self.recvBuff = self.recvBuff[self.msgLen + 4:]
-        self.peer._pieceFinished(pieceIndex, blockOffset, pieceData)
+        self.peer._blockReceived(pieceIndex, blockOffset, pieceData, self.msgLen-9)
