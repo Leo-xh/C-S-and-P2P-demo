@@ -103,7 +103,16 @@
 	    	\end{figure}
 	    	\par 在实现这个通信模型时遇到的问题主要是TCP协议的分包和粘包问题，TCP中只有数据流这样的概念，而没有数据包一类的概念，每次收到的不一定会是一个完整的数据包，所以需要通过某种方法明确当前处理的数据包的大小，然后解析这个大小的数据包。
 	    % subsection 协议设计 (end)
-    	
+    	\subsection{特点} % (fold)
+    	\label{sub:特点}
+    		本项目中实现的C/S模型的特点是：
+    		\begin{enumerate}
+    			\item 实现了支持多文件同时传输文件传输进度条，即多个进度条能够正常显示。
+    			\item 实现了服务器文件查找功能。
+    			\item 使用了加密技术。
+    			\item 客户端能够同时请求多个文件，服务器能够同时处理多个请求。
+    		\end{enumerate}
+    	% subsection 特点 (end)
     	
     % section c_s通信 (end)
 	
