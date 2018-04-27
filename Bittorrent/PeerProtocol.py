@@ -19,16 +19,16 @@ class PeerProtocol(Protocol):
     def dataReceived(self, data):
         pass
 
-    def handshakeReceived(self, data):
+    def handshakeReceived(self):
         pass
 
-    def handshakeReplyReceived(self, data):
+    def handshakeReplyReceived(self):
         pass
 
-    def bitfieldReceived(self, data):
+    def bitfieldReceived(self):
         pass
 
-    def requestReceived(self, data):
+    def requestReceived(self):
         # message ID is 6
         if len(self.recvBuff) < 12:
             return
@@ -41,10 +41,10 @@ class PeerProtocol(Protocol):
         packet = struct.pack("!I", len(packet)) + packet
         self.transport.write(packet)
 
-    def haveReceived(self, data):
+    def haveReceived(self):
         pass
 
-    def pieceReceived(self, data):
+    def pieceReceived(self):
         # message ID is 7
         # if piece download finished, call Peer.pieceFinished
         if len(self.recvBuff) < 8 + self.msgLen:
@@ -53,3 +53,16 @@ class PeerProtocol(Protocol):
         pieceData = self.recvBuff[8:self.msgLen]
         self.recvBuff = self.recvBuff[self.msgLen:]
         self.peer.pieceFinished(pieceID, blockOffset, pieceData)
+
+
+    def sendBitfield(self, bitfield):
+        pass
+
+    def sendRequest(self, pieceIndex, blockOffset, blockLength):
+        pass
+    
+    def sendPiece(self, pieceIndex, blockOffset, blockData):
+        pass
+    
+    def sendHave(self, pieceIndex):
+        pass
