@@ -8,7 +8,6 @@ from Crypto.Cipher import AES
 # -*- coding=utf-8 -*-
 
 
-
 # serverIp = '172.18.35.225'
 serverIp = '192.168.199.218'
 # Leo's laptop in dormitory
@@ -32,6 +31,7 @@ lock = threading.Lock()
 
 
 class UnExist(Exception):
+
     def __init__(self, arg="File does not exist, the connection is closed"):
         super(UnExist, self).__init__(arg)
 
