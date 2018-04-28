@@ -1,6 +1,7 @@
 import random
 import bencode
 import hashlib
+import os
 from bitstring import BitArray
 from math import *
 
@@ -62,7 +63,23 @@ class Peer():
         self.bitfieldFilename = bitfieldFilename
         self.peerID = self._generatepeerID()
         self.pieceList = []
-        self.file = open(downloadFilename, 'ab')
+        self._initFile()
+#        self.file = open(downloadFilename, 'ab')
+        
+    # if the file exists, open it and move the file pointer to the head of it,
+    # otherwise, create it of the size length and mov the pointer to the head of it.
+    
+    def _initFile(self, filename):
+        if os.path.exists(filename):
+            self.file = open(filename, 'ab')
+            self.file.seek(0)
+        else:
+            self.file = open(filename, 'wb')
+            self.file.seek(self.fileLength-1)
+            self.file.write(b'\x00')
+            self.file.seek(0)
+            
+        
         
     def _initPieceList(self):
         FileInfo = self.metafile['info']
