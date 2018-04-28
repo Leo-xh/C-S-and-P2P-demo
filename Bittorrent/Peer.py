@@ -37,7 +37,6 @@ class Piece(object):
         self.blockList = {}  # key: offset, val: blockInfo
         self._initBlockList()
         self.requestList = []   # a list of peerID
-        self.factory = PeerFactory(self)
     
     def _initBlockList(self):
         for i in range(0, ceil(self.pieceLength/BLOCK_SIZE)):
@@ -55,7 +54,6 @@ class Piece(object):
 class Peer():
     def __init__(self,
                  reactor,
-                 factory,
                  metafile,
                  downloadFilename,
                  bitfieldFilename='bitfield'):
@@ -64,7 +62,7 @@ class Peer():
         self.activePeerList = {}  # key: peerID, val: activePeer
         self.requestCount = 0  # total requests
         self.reactor = reactor
-        self.factory = factory
+        self.factory = PeerFactory(self)
         self.metafile = metafile
         self.downloadFilename = downloadFilename
         self.bitfield = self._readBitfieldFromFile(bitfieldFilename)

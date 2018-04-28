@@ -192,11 +192,82 @@
 
 		\subsubsection{协议设计} % (fold)
 		\label{ssub:协议设计}
-		
+			\par tracker服务器需要能够维护一个发起种子文件链接请求的对等方列表，将延时过期的对等方从对等方列表中剔除，
+			并响应新的对等方的请求，以及向所有对等方发送实时的对等方列表。
+			\par 客户端是每个对等方与tracker服务器链接的功能部分，
+			向服务器发起种子文件链接请求，拿到tracker服务器返回来的对等方列表，交给本地的对等方，并且需要根据服务器设定的时间要求，
+			一定时间再次发起一个请求，告知服务器该对等方还存活以及拿到新对等方列表并更新本地的对等方列表。
+			\\
+			\par tracker服务器与客户端之间传输的报文包括以下四种:
+			\begin{table}[H]
+				\centering
+				\begin{tabular}{|c|c|c|c|}
+					\hline
+					protocol\_id & action & transaction\_id \\
+					\hline
+				\end{tabular}
+				\caption{客户端connect request}
+			\end{table}
+			\par 参数及作用：action是表明报文类型（connect还是announce），
+			transaction\_id是客户端生成并以此来认证tracker返回的报文。
+			\begin{table}[H]
+				\centering
+				\begin{tabular}{|c|c|c|c|}
+					\hline
+					action & transaction\_id & connection\_id \\
+					\hline
+				\end{tabular}
+				\caption{服务器connect response}
+			\end{table}
+			\par 参数及作用：connecttion\_id是tracker生成了独一无二的一个验证码，用来验证客户端请求的合法性，
+			并防止遭受大量无效的请求。
+			\begin{table}[H]
+				\centering
+				\begin{tabular}{|c|c|c|c|}
+					\hline
+					connection\_id & action     & transaction\_id & info\_hash \\
+					\hline
+					peer\_id       & downloaded & left            & uploaded   \\
+					\hline
+					event          & IP address & key             & num\_want  \\
+					\hline
+					port           &            &                 &            \\
+					\hline
+				\end{tabular}
+				\caption{客户端announce request}
+			\end{table}
+			\par 参数及作用：IP address是可选选项，port是客户端对应的对等方监听的端口。
+			
+			\begin{table}[H]
+				\centering
+				\begin{tabular}{|c|c|c|}
+					\hline
+					action & transaction\_id & interval \\
+					\hline
+					\multicolumn{3}{|c|}{\multirow{5}*{peer\_list}
+					}\\
+					\multicolumn{3}{|c|}{~}\\
+					\multicolumn{3}{|c|}{~}\\
+					\multicolumn{3}{|c|}{~}\\
+					\multicolumn{3}{|c|}{~}\\
+					\hline
+				\end{tabular}
+				\caption{服务器announce response}
+			\end{table}
+			\par 参数及作用：interval是服务器自定的时间间隔参数，要求client在该时间间隔后必须再次向tracker发出一次announce request，
+			若tracker在两倍的interval时间后，没有收到client发来的announce request，则认为client已失去链接，将它从peer\_list中剔除出去。
+			\\
+			\par 在tracker和client通信中，为了减轻tracker负担，我们选择了UDP，而在采用UDP协议时，就决定了应用层需要去解决丢包、超时的情况，
+			所以在client中需要设计超时重传机制（而不是在tracker服务器中），而且每发生了超时重传后，下一次的的超时重传间隔设得比现在的间隔要大。
 		% subsubsection 协议设计 (end)
 		\subsubsection{协议特点} % (fold)
 		\label{ssub:协议特点}
-		
+			tracker和client通信设计的特点是：
+			\begin{enumerate}
+				\item tracker使用twisted事件驱动型编程框架来实现，以client的请求这一事件来驱动tracker的响应，极大程度上降低tracker在没有client请求时的资源消耗。
+				\item 采用UDP协议，并为client设计了较为完备超时重传的机制，以此有效降低tracker的服务负载。
+				\item tracker给client发送的peer\_list采用的是紧凑格式的，每个peer的信息只需要用到6字节，相比于采用bencoded字典的列表，数据的压缩率达到了50\%以上的提高，			
+			\end{enumerate}		
 		% subsubsection 协议特点 (end)
 	% subsection tracker_和_client (end)
 	\subsection{Peer通信} % (fold)
