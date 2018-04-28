@@ -46,6 +46,10 @@ class Piece(object):
             else:
                 self.blockList.update({i*BLOCK_SIZE : self.blockInfo(i*BLOCK_SIZE,self.pieceLength - i * BLOCK_SIZE)})
         
+    def _readBlockData(self, fileReader):
+        for i in self.blockList.keys():
+            self.blockList[i].dataReceived = True
+            self.blockList[i].data = fileReader.read(self.blockList[i].size)
 
 
 class Peer():
@@ -86,12 +90,16 @@ class Peer():
         self.md5sum = FileInfo['md5sum']
         self.name = FileInfo['name']
         self.pieceLength = FileInfo['piece length']
+        fileReader = open(self.downloadFilename, 'rb')
         for i in range(0, len(FileInfo['pieces'])/20):
             if i != len(FileInfo['pieces'])/20 - 1:
                 self.pieceList.append(Piece(i, self.pieceLength, FileInfo['pieces'][i*20:(i+1)*20]))
             else:
                 self.pieceList.append(Piece(i, len(FileInfo['pieces'])-20*i, FileInfo['pieces'][i*20:]))
-                
+            if self.bitfield[i] == True:
+                fileReader.seek(self.pieceLength * i)
+                self.pieceList[i]._readBlockData(fileReader)
+        
     def _generatePeerID(self):
         # xh adds
         class peerIDCreator(object):
@@ -108,7 +116,15 @@ class Peer():
         return pIdCreator.getpeerID()
 
     def _readBitfieldFromFile(self, filename):
-        pass
+        if os.path.exists(filename):
+            file = open(filename, 'rb')
+            return file.read()
+        else:
+            file = open(filename, 'rw')
+            ret = bytes(ceil(len(self.pieceList)/8))
+            file.write(ret)
+            file.close()
+            return ret
 
     def _updateBitfield(self, pieceIndex, addPiece=True):
         self.bitfield = BitArray(self.bitfield).set(addPiece, pieceIndex).bytes
@@ -120,6 +136,9 @@ class Peer():
         for offset in blockOffsets:
             self.file.write(piece.blockList[offset].data)
         self.file.close()
+        file = open(self.bitfieldFilename, 'wb')
+        file.write(self.bitfield)
+        file.close()
         for piece in self.pieceList:
             if piece.have != True:
                 return 

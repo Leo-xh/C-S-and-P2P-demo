@@ -1,3 +1,4 @@
+import bencode
 from twisted.internet import reactor
 from twisted.internet import task
 from PeerProtocol import PeerProtocol
@@ -12,7 +13,7 @@ LISTEN_TCP_PORT = 6788
 
 
 def readMetafileFromFile(filename):
-    pass
+    return bencode.decode(open(filename, 'rb').read())
 
 def main():
     metafile = readMetafileFromFile('test.torrent')

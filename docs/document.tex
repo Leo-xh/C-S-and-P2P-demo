@@ -168,6 +168,25 @@
 \section{P2P通信} % (fold)
 \label{sec:p2p通信}
 	本项目中完成了bittorrent协议的一个实现（命名为Compact Bittorrent Protocol/1.0），这个实现采用了基本的Bittorrent协议规定的内容，同时参考了社区中的建议（比如Block大小的选择）。同时我们参考了Bittorrent协议网站上列出的的扩展方案中的协议。我们的实现主要包括两个方面，一是客户端（Peer在和Tracker通信时作为客户端）与服务器（Tracker）的通信；二是对等方之间的通信。下面将围绕这两个方面进行介绍。
+	首先一个Peer的程序流程和状态转移如图\ref{fig:peer}所示。
+	\begin{figure}[H]
+		\centering
+		\includegraphics[scale=0.3]{imgs/peer.png}
+		\caption{Peer程序流程和状态图}
+		\label{fig:peer}
+	\end{figure}
+	\subsection{Twisted和异步编程} % (fold)
+	\label{sub:twisted和异步编程}
+		\subsubsection{Twisted简介} % (fold)
+		\label{ssub:twisted简介}
+		
+		% subsubsection twisted简介 (end)
+		\subsubsection{异步编程与事件驱动} % (fold)
+		\label{ssub:异步编程与事件驱动}
+		
+		% subsubsection 异步编程与事件驱动 (end)
+
+	% subsection twisted和异步编程 (end)
 	\subsection{Tracker和Client的通信} % (fold)
 	\label{sub:tracker_和_client}
 
@@ -182,14 +201,16 @@
 	% subsection tracker_和_client (end)
 	\subsection{Peer通信} % (fold)
 	\label{sub:peer通信}
-		
+
 		\subsubsection{协议设计} % (fold)
 		\label{ssub:协议设计}
 			
 		% subsubsection 协议设计 (end)
 		\subsubsection{协议特点} % (fold)
 		\label{ssub:协议特点}
-			
+			\begin{enumerate}
+				\item 
+			\end{enumerate}
 		% subsubsection 协议特点 (end)
 	
 	% subsection peer通信 (end)

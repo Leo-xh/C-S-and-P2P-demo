@@ -90,3 +90,6 @@
     - print message
 - receive a `Have`
     - update the bitfield of this peer
+
+### bitField Record
+a number whose number of bits is larger than number of pieces.

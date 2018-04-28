@@ -1,15 +1,15 @@
 # Fdb version 3
-["xdvipdfmx"] 1524889819 "document.xdv" "document.pdf" "document" 1524889821
-  "document.xdv" 1524889818 90100 220518fbcf31bc7bb9dbf46e0bd54132 "xelatex"
+["xdvipdfmx"] 1524896891 "document.xdv" "document.pdf" "document" 1524896895
+  "document.xdv" 1524896890 96960 27f6fb8b1ff370cc24a78ec8cae2c5d4 "xelatex"
   (generated)
   "document.pdf"
-["xelatex"] 1524889814 "document.tex" "document.xdv" "document" 1524889821
+["xelatex"] 1524896886 "document.tex" "document.xdv" "document" 1524896895
   "c:/Windows/Fonts/msyh.ttc" 1506692488 19647736 ff2e53a6131130a07589812ea5b5b0d0 ""
   "cover.tex" 1524842369 603 f25b86772d3ec1d72c0b7fa3fc9b4fc1 ""
-  "document.aux" 1524889818 5148 f2d5710583ca1f83cb710b08c03abd09 ""
-  "document.out" 1524889818 1705 54ccf1a5728eba70a5a5ef433faeb5c2 ""
-  "document.tex" 1524889808 13162 22ddeea22a9a733ae23fedefd34f3874 ""
-  "document.toc" 1524889818 1432 60d9dacce35005bb1be0085728786d92 ""
+  "document.aux" 1524896890 5973 bb3e1146ea7e4020490af084dcb152c5 ""
+  "document.out" 1524896890 2097 013065bf1da7859da13a484143bed05b ""
+  "document.tex" 1524896880 13827 c02e1669fd5c80a2d16da1ac3cd214dd ""
+  "document.toc" 1524896890 1709 d27e53266705250fd82b39cafa5c198a ""
   "e:/texlive/2017/texmf-dist/fonts/map/fontname/texfonts.map" 1521817468 3332 103109f5612ad95229751940c61aada0 ""
   "e:/texlive/2017/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1521820836 1528 7e12f4c0fcf5a072cebdcfbfc610f54c ""
   "e:/texlive/2017/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1521815998 1004 54797486969f23fa377b128694d548df ""
@@ -112,10 +112,11 @@
   "imgs/NetworkP2P.png" 1524889504 40376 8f212c16a2dcfa78f692e72f1214702f ""
   "imgs/SYSULogo.png" 1524796059 19702 1ef359a4f676c11396d93652c45460fe ""
   "imgs/client.png" 1524813935 15374 51c28a093fbaa6d1fc31cfabc6e008db ""
+  "imgs/peer.png" 1524894803 97401 cf93537b591e9669bb603ca499fb6d26 ""
   "imgs/server.png" 1524813935 50906 1ec27cf7b5d599b904f4099bc7fc847f ""
   (generated)
+  "document.out"
+  "document.aux"
   "document.xdv"
   "document.toc"
-  "document.aux"
   "document.log"
-  "document.out"
