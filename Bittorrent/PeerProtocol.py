@@ -26,7 +26,7 @@ class PeerProtocol(Protocol):
 
     def _handshake(self):
         print("shaking")
-        packet = struct.pack(self.formatForHandshake, self.MsgLen,
+        packet = struct.pack(self.formatForHandshake, self.msgLen,
                              self.protocolName.encode(), bytes(8),
                              self.peer._getInfoHash().encode(),
                              self.peer._getpeerID().encode())

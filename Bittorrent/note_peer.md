@@ -75,6 +75,7 @@
     1. select a piece with nonempty request list and a block in the state of `Request` not sent
     2. select a peer in the request list
     3. send `Request`
+    4. update the block state
 - receive a `Request`
     - send `Piece`
 - receive a `Piece`
