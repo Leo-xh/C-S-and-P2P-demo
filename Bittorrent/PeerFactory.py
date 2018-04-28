@@ -11,3 +11,11 @@ class PeerFactory(Factory):
         p.factory = self
         return p
 
+    def startedConnecting(self, connector):
+        pass
+        
+    def clientConnectionLost(self, connector, reason):
+        pass
+
+    def clientConnectionFailed(self, connector, reason):
+        pass

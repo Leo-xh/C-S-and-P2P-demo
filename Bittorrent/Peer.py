@@ -53,10 +53,12 @@ class Piece(object):
 
 class Peer():
     def __init__(self,
+                 peerPort,
                  reactor,
                  metafile,
                  downloadFilename,
                  bitfieldFilename='bitfield'):
+        self.peerPort = peerPort
         self.peerList = []  # same as the one in client
         self.connected = {} # whether a peer has been connected, key: item in peerList
         self.activePeerList = {}  # key: peerID, val: activePeer
@@ -81,7 +83,7 @@ class Peer():
     def _initFile(self, filename):
         if not os.path.exists(filename):
             self.file = open(filename, 'wb')
-            self.file.seek(self.metafile['length']-1)
+            self.file.seek(self.metafile['info']['length']-1)  # ychz debug 16:47 
             self.file.write(b'\x00')
             self.file.close()
             
@@ -188,7 +190,10 @@ class Peer():
     def peerListReceived(self, peerList):
         self.peerList = peerList
         for peer in peerList:
-            self.connected[peer] = False
+            if peer == ('127.0.0.1', self.peerPort):
+                self.connected[peer] = True
+            else:
+                self.connected[peer] = False
 
     def tryConnectPeer(self):
         if len(self.activePeerList) < MAX_NUM_ACTIVE_PEERS:
