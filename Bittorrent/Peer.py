@@ -4,6 +4,7 @@ import hashlib
 import os
 from bitstring import BitArray
 from math import *
+from PeerFactory import PeerFactory
 
 MAX_NUM_ACTIVE_PEERS = 3
 MAX_NUM_REQUESTS = 10
@@ -15,7 +16,7 @@ BLOCK_SIZE = 16384 # 2^14
 class ActivePeer(object):
     def __init__(self, peerID, protocol):
         self.peerID = peerID
-        self.bitfield = 0
+        self.bitfield = None
         self.protocol = protocol
 
 
@@ -33,10 +34,10 @@ class Piece(object):
         self.pieceLength = pieceLength
         self.SHA1 = SHA1
         self.have = False
-        self.blockList = {}  # a list of blockInfo
+        self.blockList = {}  # key: offset, val: blockInfo
         self._initBlockList()
-        # TODO : initialize the blockList
         self.requestList = []   # a list of peerID
+        self.factory = PeerFactory(self)
     
     def _initBlockList(self):
         for i in range(0, ceil(self.pieceLength/BLOCK_SIZE)):
@@ -50,20 +51,23 @@ class Piece(object):
 class Peer():
     def __init__(self,
                  reactor,
+                 factory,
                  metafile,
                  downloadFilename,
                  bitfieldFilename='bitfield'):
         self.peerList = []  # same as the one in client
-        self.activePeerList = []  # a list of activePeer
+        self.connected = {} # whether a peer has been connected, key: item in peerList
+        self.activePeerList = {}  # key: peerID, val: activePeer
         self.requestCount = 0  # total requests
         self.reactor = reactor
+        self.factory = factory
         self.metafile = metafile
         self.downloadFilename = downloadFilename
         self.bitfield = self._readBitfieldFromFile(bitfieldFilename)
         self.bitfieldFilename = bitfieldFilename
-        self.peerID = self._generatepeerID()
+        self.peerID = self._generatePeerID()
         self.pieceList = []
-        self._initFile()
+        self._initFile(downloadFilename)
 #        self.file = open(downloadFilename, 'ab')
         
     # if the file exists, open it and move the file pointer to the head of it,
@@ -94,7 +98,7 @@ class Peer():
             else:
                 self.pieceList.append(Piece(i, len(FileInfo['pieces'])-20*i, FileInfo['pieces'][i*20:]))
                 
-    def _generatepeerID(self):
+    def _generatePeerID(self):
         # xh adds
         class peerIDCreator(object):
 
@@ -116,11 +120,13 @@ class Peer():
         self.bitfield = BitArray(self.bitfield).set(addPiece, pieceIndex).bytes
 
     def _writePiece(self, piece):  # write a Piece to file
+        self.file = open(self.downloadFilename, 'ab')
         self.file.seek(piece.pieceIndex * self.pieceLength)
         blockOffsets = list(piece.blockList.keys()).sort()
         for offset in blockOffsets:
             self.file.write(piece.blockList[offset].data)
         self.file.seek(-piece.pieceIndex * self.pieceLength)
+        self.file.close()
         for piece in self.pieceList:
             if piece.have != True:
                 return 
@@ -133,7 +139,7 @@ class Peer():
     def _getInfoHash(self):
         return self.info_hash
 
-    def _getpeerID(self):
+    def _getPeerID(self):
         return self.peerID
 
     def _getBitfield(self):
@@ -143,9 +149,21 @@ class Peer():
     def _getBlockData(self, pieceIndex, blockOffset, blockLen):
         return self.pieceList[pieceIndex].blockList[blockOffset].data
 
+    def _isActivePeerID(self, peerID):
+        for ID in self.activePeerList:
+            if peerID == ID:
+                return True
+        return False
+
+    def _addActivePeer(self, peerID, protocol):
+        self.activePeerList[peerID] = ActivePeer(peerID, protocol)
+
+    def _addActivePeerBitfield(self, peerID, bitfield):
+        self.activePeerList[peerID].bitfield = bitfield
+
     def _pieceFinished(self, pieceIndex):
         self.pieceList[pieceIndex].have = True
-        for activePeer in self.activePeerList:
+        for activePeer in self.activePeerList.values():
             activePeer.protocol._sendHave(pieceIndex)
         self._writePiece(self.pieceList[pieceIndex])
     
@@ -159,15 +177,45 @@ class Peer():
         
     def peerListReceived(self, peerList):
         self.peerList = peerList
+        for peer in peerList:
+            self.connected[peer] = False
 
     def tryConnectPeer(self):
-        pass
+        if len(self.activePeerList) < MAX_NUM_ACTIVE_PEERS:
+            for peer in self.peerList:
+                if not self.connected[peer]:
+                    self.reactor.connectTCP(peer[0], peer[1], self.factory)
+                    return
 
     def tryAddRequest(self):  # add a peer to a request list
-        pass
+        if self.requestCount < MAX_NUM_REQUESTS:
+            # TODO : rarest-first order
+            for pieceIndex in range(len(self.pieceList)):
+                piece = self.pieceList[pieceIndex]
+                if len(piece.requestList) < MAX_NUM_REQUESTS_PER_PIECE:
+                    for peer in self.activePeerList.values():
+                        if not peer.peerID in piece.requestList:
+                            bitfield = BitArray(peer.bitfield)
+                            if bitfield[pieceIndex]:
+                                self.pieceList[pieceIndex].requestList.append(peer.peerID)
+                                self.requestCount += 1
+                                return
 
     def trySendRequest(self):
-        pass
+        #for pieceIndex in range(len(self.pieceList)):
+        for piece in self.pieceList:
+            if not piece.have and len(piece.requestList) > 0:
+                for block in piece.blockList.values():
+                    if not block.requestSent:
+                        sel = random.randint(0, len(piece.requestList)-1)
+                        peerID = piece.requestList[sel]
+                        self.activePeerList[peerID].protocol._sendRequest(piece.pieceIndex,
+                                                                          block.offset,
+                                                                          block.size)
+                        self.pieceList[piece.pieceIndex].blockList[block.offset].requestSent = True
+                        return
+
 
     # TODO : timeout and abort connections
+    # TODO : cap on active peers should apply to income connection
 

@@ -13,7 +13,7 @@ class PeerProtocol(Protocol):
 
     def __init__(self, peer):
         self.peer = peer
-        self.bitfield = peer.bitfield
+        #self.bitfield = peer.bitfield
         self.bitfieldSent = False
         self.bitfieldRecv = b''
         self.msgLen = 0  # 4 bytes
@@ -22,6 +22,7 @@ class PeerProtocol(Protocol):
         # xh adds, used to denote that handshake is finished
         self.shaked = False
         self.shakeSent = False
+        self.peerIDRecv = None
 
     def _handshake(self):
         print("shaking")
@@ -102,7 +103,8 @@ class PeerProtocol(Protocol):
         infohashRecv = infohashRecv.decode()
         if ((protocolNameRecv != self.protocolName)
                 or (infohashRecv != self.peer._getInfoHash())
-                or (peerIDRecv == self.peer._getpeerID())):
+                or (peerIDRecv == self.peer._getpeerID()))
+                or (self.peer._isActivePeerID(peerIDRecv)):
             self.transport.abortConnection()
             print("handshake fail")
         else:
@@ -110,9 +112,11 @@ class PeerProtocol(Protocol):
             print("handshake received")
             self._handshake()
             self.shaked = True
+            self.peer._addActivePeer(peerIDRecv, self)
+            self.peerIDRecv = peerIDRecv
 
     def handshakeReplyReceived(self):
-        print("Handshake rely from ", self.transport.getPeer())
+        print("Handshake reply from ", self.transport.getPeer())
         #        self.recvBuff += data
         #        self.msgLen = struct.unpack('!B', self.recvBuff[0:1])[0]
         #        if(len(self.recvBuff) < self.msgLen + 49):
@@ -126,14 +130,16 @@ class PeerProtocol(Protocol):
         infohashRecv = infohashRecv.decode()
         if ((protocolNameRecv != self.protocolName)
                 or (infohashRecv != self.peer._getInfoHash())
-                or (peerIDRecv == self.peer._getpeerID())):
+                or (peerIDRecv == self.peer._getpeerID()))
+                or (self.peer._isActivePeerID(peerIDRecv)):
             self.transport.abortConnection()
-            print("handshake fail")
+            print("handshake failed")
         else:
             self.recvBuff = self.recvBuff[self.msgLen + 49:]
             print("handshake finished")
             self.shaked = True
             self._sendBitfield()
+            self.peer._addActivePeer(peerIDRecv, self)
 
     def bitfieldReceived(self):
         print("bitfield Received")
@@ -146,6 +152,7 @@ class PeerProtocol(Protocol):
         self.recvBuff = self.recvBuff[self.msgLen + 4:]
         if (self.bitfieldSent == False):
             self._sendBitfield()
+        self.peer._addActivePeerBitfield(self.peerIDRecv, self.bitfieldRecv)
 
     def requestReceived(self):
         # message ID is 6
