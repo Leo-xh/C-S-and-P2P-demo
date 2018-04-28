@@ -91,5 +91,6 @@
 - receive a `Have`
     - update the bitfield of this peer
 
-### bitField Record
+### bitField Recordpytp
+
 a number whose number of bits is larger than number of pieces.

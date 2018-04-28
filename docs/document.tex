@@ -179,17 +179,30 @@
 	\label{sub:twisted和异步编程}
 		\subsubsection{Twisted简介} % (fold)
 		\label{ssub:twisted简介}
-		
+			\par Twisted是用Python实现的基于事件驱动的网络引擎框架，Twisted支持许多常见的传输及应用层协议，包括TCP、UDP、SSL/TLS、HTTP、IMAP、SSH、IRC以及FTP。
+			\par 在本项目中主要使用的是以下几个类：
+			\begin{enumerate}
+				\item Transport：Transports代表网络中两个通信结点之间的连接。Transports负责描述连接的细节，比如连接是面向流式的还是面向数据报的，流控以及可靠性。
+				\item Protocol：Protocols描述了如何以异步的方式处理网络中的事件。
+				\item Reactor：Twisted实现了设计模式中的反应堆（reactor）模式，这种模式在单线程环境中调度多个事件源产生的事件到它们各自的事件处理例程中去。Twisted的核心就是reactor事件循环。Reactor可以感知网络、文件系统以及定时器事件。它等待然后处理这些事件，从特定于平台的行为中抽象出来，并提供统一的接口，使得在网络协议栈的任何位置对事件做出响应都变得简单。
+				\item Deferred：Deferred对象以抽象化的方式表达了一种思想，即结果还尚不存在。它同样能够帮助管理产生这个结果所需要的回调链。当从函数中返回时，Deferred对象承诺在某个时刻函数将产生一个结果。返回的Deferred对象中包含所有注册到事件上的回调引用，因此在函数间只需要传递这一个对象即可，跟踪这个对象比单独管理所有的回调要简单的多。
+			\end{enumerate}
 		% subsubsection twisted简介 (end)
 		\subsubsection{异步编程与事件驱动} % (fold)
 		\label{ssub:异步编程与事件驱动}
-		
+			图是一张区分单线程、多线程、和异步编程模型的示意图。
+		\begin{figure}[H]
+			\centering
+			\includegraphics[scale=0.4]{imgs/threading_models.png}
+			\caption{示意图}
+			\label{fig:threading_models}
+		\end{figure}
+			\par 使用异步编程的原因在于网络应用程序通常具有多任务高度独立、某些事件的发生会阻塞另外的事件的特点。
 		% subsubsection 异步编程与事件驱动 (end)
 
 	% subsection twisted和异步编程 (end)
-	\subsection{Tracker和Client的通信} % (fold)
+	\subsection{Tracker和Client的通信协议（UDP Tracker Protocol）} % (fold)
 	\label{sub:tracker_和_client}
-
 		\subsubsection{协议设计} % (fold)
 		\label{ssub:协议设计}
 			\par tracker服务器需要能够维护一个发起种子文件链接请求的对等方列表，将延时过期的对等方从对等方列表中剔除，
@@ -270,17 +283,30 @@
 			\end{enumerate}		
 		% subsubsection 协议特点 (end)
 	% subsection tracker_和_client (end)
-	\subsection{Peer通信} % (fold)
-	\label{sub:peer通信}
-
+	\subsection{Peer协议（Peer Protocol）} % (fold)
+	\label{sub:peer}
+		如图\ref{fig:peer}所示，peer协议主要处理了以下问题：
+		\begin{enumerate}
+			\item 判断多个peer是否在同一个torrent中。
+			\item peer间请求文件和接受文件，其中涉及选择策略和各个peer之间信息交换（主要是peer拥有哪些piece）。
+			\item 处理文件写入和断点续传。
+		\end{enumerate}
 		\subsubsection{协议设计} % (fold)
 		\label{ssub:协议设计}
-			
+			\noindent \textbf{Peer间通信}\\
+			\begin{enumerate}
+				\item \emph{握手}。
+				一个Peer会在一定时间间隔后定时连接没有连接过的peer，接受握手后会检测是否应当保持连接。
+				\item \emph{请求和发送文件}。
+				使用一定的策略进行piece和peer的选择。
+				\item \emph{报文设计}。
+				主要有两种报文，一是handshake报文，二是message报文。前者用以握手，后者用来进行各种通信。
+			\end{enumerate}
 		% subsubsection 协议设计 (end)
 		\subsubsection{协议特点} % (fold)
 		\label{ssub:协议特点}
 			\begin{enumerate}
-				\item 
+				\item 支持断点续传。
 			\end{enumerate}
 		% subsubsection 协议特点 (end)
 	
@@ -312,7 +338,31 @@
 	\label{fig:NetworkP2P}
 	\end{minipage}
 \end{figure}
-\par """"插入结果展示""""
+\\
+\\
+\\
+\\
+\\
+\\
+	C/S模式结果展示。
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+	P2P模式结果展示。
+\\
+\\
+\\
 \\
 \\
 \\
@@ -327,18 +377,18 @@
 % subsection 结果展示 (end)
 \subsection{对比} % (fold)
 \label{sub:对比}
-
+	使用P2P模式（简化Bittorrent协议）在Peers数目较少时要比使用C/S模式要慢上许多，而在Peers数目较多时速度有较大提升。
 % subsection 对比 (end)
 
 % section 结果 (end)
 \section{总结} % (fold)
 \label{sec:总结}
-
+	协议的设计是相当复杂的，主要在于协议报文主体的设计和协议控制流程的设计。
 % section 总结 (end)
 
 \section{项目管理记录} % (fold)
 \label{sec:项目管理记录}
-
+	本项目主要使用的是github来管理项目，建立了一个仓库，三人同时使用。
 % section 项目管理记录 (end)
 
 \newpage
@@ -348,6 +398,7 @@
 	\begin{enumerate}
 		\item Jonas Fonseca，et al，\url{http://jonas.nitro.dk/bittorrent/bittorrent-rfc.html#anchor17}，Bittorrent协议详细解读。
 		\item Bram Cohen，\url{http://www.bittorrent.org/beps/bep_0003.html}，Bittorrent官方协议。
+		\item Jessica McKellar & Abe Fettig，Twisted Network Programming Essentials(second edition)。
 	\end{enumerate}
 	% section  (end)
 \end{appendices}

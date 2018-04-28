@@ -22,8 +22,9 @@ def main():
     peer = Peer.Peer(reactor, metafile, 'file.txt')
     reqClient = RequestClient(
         peer,
+        CLIENT_UDP_PORT,
         clientIpstr=socket.gethostbyname(socket.gethostname()),
-        clientPort=CLIENT_UDP_PORT,
+        clientPort=PEER_LISTEN_TCP_PORT,
         protocol_id=1,
         info_hash=peer._getInfoHash(),
         peer_id=peer._getPeerID(),

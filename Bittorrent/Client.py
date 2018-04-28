@@ -33,7 +33,7 @@ class RequestClient(DatagramProtocol):
     ClientIpStr is the listening TCP ip, and ClientPort is the corresponding port.
     '''
 
-    def __init__(self, peer, trackerIpstr='127.0.0.1', trackerPort=56789, **args):
+    def __init__(self, peer, udp_port, trackerIpstr='127.0.0.1', trackerPort=56543, **args):
 
         super(RequestClient, self).__init__()
         self.peer = peer
@@ -56,6 +56,7 @@ class RequestClient(DatagramProtocol):
         self.trackerIpstr = trackerIpstr
         self.trackerIp = utils.ip2int(self.trackerIpstr)
         self.trackerPort = trackerPort
+        self.udp_port = udp_port
 
         self.interval = 0
         self.transaction_id = 0
@@ -77,7 +78,7 @@ class RequestClient(DatagramProtocol):
         self.portSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.portSocket.setblocking(False)
         self.portSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.portSocket.bind((self.clientIpstr, self.clientPort))
+        self.portSocket.bind((self.clientIpstr, self.udp_port))
 
         # start the reactor with a sentence and connect to the tracket
     def startProtocol(self):
