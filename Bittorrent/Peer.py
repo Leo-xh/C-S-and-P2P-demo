@@ -136,8 +136,10 @@ class Peer():
     def _blockReceived(self, pieceIndex, blockOffset, data, dataSize):
         self.pieceList[pieceIndex].blockList[blockOffset].data = data
         self.pieceList[pieceIndex].blockList[blockOffset].dataReceived = True
-        if self.pieceList[pieceIndex].pieceLength == blockOffset + dataSize:
             self._pieceFinished(pieceIndex)
+            if block.dataReceived != True:
+                return 
+        self._pieceFinished(pieceIndex)
         
     def peerListReceived(self, peerList):
         self.peerList = peerList
