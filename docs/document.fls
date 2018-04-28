@@ -220,4 +220,6 @@ INPUT e:/texlive/2017/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
 OUTPUT document.toc
 INPUT imgs/server.png
 INPUT imgs/client.png
+INPUT imgs/NetworkCS.png
+INPUT imgs/NetworkP2P.png
 INPUT document.aux
