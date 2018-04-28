@@ -42,11 +42,12 @@ def main():
                               socket.AF_INET, reqClient)
 
     reactor.listenTCP(PEER_LISTEN_TCP_PORT, peer.Serverfactory)
-    loopConnectPeer = task.LoopingCall(peer.tryConnectPeer)
+    # loopConnectPeer = task.LoopingCall(peer.tryConnectPeer)
     loopAddRequest = task.LoopingCall(peer.tryAddRequest)
     loopSendRequest = task.LoopingCall(peer.trySendRequest)
 
-    loopConnectPeer.start(INTERVAL_CONNECT_PEER)
+    reactor.callLater(INTERVAL_CONNECT_PEER, peer.tryConnectPeer)
+    # loopConnectPeer.start(INTERVAL_CONNECT_PEER)
     loopAddRequest.start(INTERVAL_ADD_REQUEST)
     loopSendRequest.start(INTERVAL_SEND_REQUEST)
 
