@@ -68,7 +68,6 @@ class Peer():
         
     # if the file exists, open it and move the file pointer to the head of it,
     # otherwise, create it of the size length and mov the pointer to the head of it.
-    
     def _initFile(self, filename):
         if os.path.exists(filename):
             self.file = open(filename, 'ab')
