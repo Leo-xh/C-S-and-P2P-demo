@@ -17,7 +17,7 @@ class PeerProtocol(Protocol):
         self.peer = peer
         #self.bitfield = peer.bitfield
         self.bitfieldSent = False
-        self.bitfieldRecv = b''
+        #self.bitfieldRecv = b''
         self.msgLen = 0  # 4 bytes
         self.msgID = -1  # 1 bytes
         self.recvBuff = b''
@@ -138,12 +138,12 @@ class PeerProtocol(Protocol):
 
     def bitfieldReceived(self):
         print("bitfield Received")
-        self.bitfieldRecv = struct.unpack('!%ds' % self.msgLen - 1,
-                                          self.recvBuff[5:self.msgLen + 4])[0]
+        bitfieldRecv = struct.unpack('!%ds' % self.msgLen - 1,
+                                     self.recvBuff[5:self.msgLen + 4])[0]
         self.recvBuff = self.recvBuff[self.msgLen + 4:]
         if (self.bitfieldSent == False):
             self._sendBitfield()
-        self.peer._addActivePeerBitfield(self.peerIDRecv, self.bitfieldRecv)
+        self.peer._addActivePeerBitfield(self.peerIDRecv, bitfieldRecv)
 
     def requestReceived(self):
         # message ID is 6
@@ -155,11 +155,9 @@ class PeerProtocol(Protocol):
 
     def haveReceived(self):
         print("Have receive")
-        position = struct.unpack('!I', self.recvBuff[5:9])[0]
+        pieceIndex = struct.unpack('!I', self.recvBuff[5:9])[0]
         self.recvBuff = self.recvBuff[9:]
-        bitfield = BitArray(self.bitfieldRecv)
-        bitfield.set(True, position)
-        self.bitfieldRecv = bitfield.bytes
+        self.peer._updateBitfield(pieceIndex)
 
     def pieceReceived(self):
         # message ID is 7
