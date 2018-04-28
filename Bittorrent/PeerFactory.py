@@ -8,7 +8,7 @@ class PeerClientFactory(ClientFactory):
         # self.flag = False
 
     def buildProtocol(self, addr):
-        print("building")
+        # print("building")
         return self.p
 
     def startedConnecting(self, connector):
