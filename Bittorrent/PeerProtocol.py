@@ -91,10 +91,6 @@ class PeerProtocol(Protocol):
 
     def handshakeReceived(self):
         print("Handshake from ", self.transport.getPeer())
-        #        self.msgLen = struct.unpack('!B', self.recvBuff[0:1])[0]
-        #        if(len(self.recvBuff) < self.msgLen + 49):
-        #            return
-        #        else:
         (self.msgLen, protocolNameRecv,
          reserved, infohashRecv, peerIDRecv) = struct.unpack(
              self.formatForHandshake, self.recvBuff[0:self.msgLen + 49])
@@ -103,8 +99,8 @@ class PeerProtocol(Protocol):
         infohashRecv = infohashRecv.decode()
         if ((protocolNameRecv != self.protocolName)
                 or (infohashRecv != self.peer._getInfoHash())
-                or (peerIDRecv == self.peer._getpeerID()))
-                or (self.peer._isActivePeerID(peerIDRecv)):
+                or (peerIDRecv == self.peer._getpeerID())
+                or (self.peer._isActivePeerID(peerIDRecv))):
             self.transport.abortConnection()
             print("handshake fail")
         else:
@@ -117,11 +113,6 @@ class PeerProtocol(Protocol):
 
     def handshakeReplyReceived(self):
         print("Handshake reply from ", self.transport.getPeer())
-        #        self.recvBuff += data
-        #        self.msgLen = struct.unpack('!B', self.recvBuff[0:1])[0]
-        #        if(len(self.recvBuff) < self.msgLen + 49):
-        #            return
-        #        else:
         (self.msgLen, protocolNameRecv,
          reserved, infohashRecv, peerIDRecv) = struct.unpack(
              self.formatForHandshake, self.recvBuff[0:self.msgLen + 49])
@@ -130,8 +121,8 @@ class PeerProtocol(Protocol):
         infohashRecv = infohashRecv.decode()
         if ((protocolNameRecv != self.protocolName)
                 or (infohashRecv != self.peer._getInfoHash())
-                or (peerIDRecv == self.peer._getpeerID()))
-                or (self.peer._isActivePeerID(peerIDRecv)):
+                or (peerIDRecv == self.peer._getpeerID())
+                or (self.peer._isActivePeerID(peerIDRecv))):
             self.transport.abortConnection()
             print("handshake failed")
         else:
@@ -143,10 +134,6 @@ class PeerProtocol(Protocol):
 
     def bitfieldReceived(self):
         print("bitfield Received")
-        #        self.msgLen = struct.unpack('!I', self.recvBuff[0:4])[0]
-        #        if(self.msgLen > len(data) - 4):
-        #            self.recvBuff += data
-        #            return
         self.bitfieldRecv = struct.unpack('!%ds' % self.msgLen - 1,
                                           self.recvBuff[5:self.msgLen + 4])[0]
         self.recvBuff = self.recvBuff[self.msgLen + 4:]
@@ -164,10 +151,6 @@ class PeerProtocol(Protocol):
 
     def haveReceived(self):
         print("Have receive")
-        #        self.msgLen = struct.unpack('!I', self.recvBuff[0:4])[0]
-        #        if(self.msgLen > len(data) - 4):
-        #            self.recvBuff += data
-        #            return
         position = struct.unpack('!I', self.recvBuff[5:9])[0]
         self.recvBuff = self.recvBuff[9:]
         bitfield = BitArray(self.bitfieldRecv)

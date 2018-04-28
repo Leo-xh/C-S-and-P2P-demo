@@ -68,19 +68,13 @@ class Peer():
         self.peerID = self._generatePeerID()
         self.pieceList = []
         self._initFile(downloadFilename)
-#        self.file = open(downloadFilename, 'ab')
         
-    # if the file exists, open it and move the file pointer to the head of it,
-    # otherwise, create it of the size length and mov the pointer to the head of it.
     def _initFile(self, filename):
-        if os.path.exists(filename):
-            self.file = open(filename, 'ab')
-            self.file.seek(0)
-        else:
+        if not os.path.exists(filename):
             self.file = open(filename, 'wb')
             self.file.seek(self.fileLength-1)
             self.file.write(b'\x00')
-            self.file.seek(0)
+            self.file.close()
             
         
         
@@ -125,7 +119,6 @@ class Peer():
         blockOffsets = list(piece.blockList.keys()).sort()
         for offset in blockOffsets:
             self.file.write(piece.blockList[offset].data)
-        self.file.seek(-piece.pieceIndex * self.pieceLength)
         self.file.close()
         for piece in self.pieceList:
             if piece.have != True:

@@ -233,7 +233,7 @@ if __name__ == '__main__':
     num_want = 0
 
     reqClient = RequestClient(
-        peer
+        peer,
         clientIpstr=clientIpstr,
         clientPort=clientPort,
         protocol_id=1,
