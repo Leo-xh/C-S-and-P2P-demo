@@ -4,7 +4,7 @@ import hashlib
 import os
 from bitstring import BitArray
 from math import *
-from PeerFactory import PeerFactory
+import PeerFactory
 
 MAX_NUM_ACTIVE_PEERS = 3
 MAX_NUM_REQUESTS = 10
@@ -62,8 +62,15 @@ class Peer():
         self.activePeerList = {}  # key: peerID, val: activePeer
         self.requestCount = 0  # total requests
         self.reactor = reactor
-        self.factory = PeerFactory(self)
+        self.factory = PeerFactory.PeerFactory(self)
         self.metafile = metafile
+        FileInfo = self.metafile['info']
+        self.info_hash = hashlib.sha1(str(FileInfo).encode()).digest()
+        # pay attention
+        self.fileLength = FileInfo['length']
+        self.md5sum = FileInfo.get('md5sum')
+        self.name = FileInfo['name']
+        self.pieceLength = FileInfo['piece length']
         self.downloadFilename = downloadFilename
         self.bitfield = self._readBitfieldFromFile(bitfieldFilename)
         self.bitfieldFilename = bitfieldFilename
@@ -74,20 +81,13 @@ class Peer():
     def _initFile(self, filename):
         if not os.path.exists(filename):
             self.file = open(filename, 'wb')
-            self.file.seek(self.fileLength-1)
+            self.file.seek(self.metafile['length']-1)
             self.file.write(b'\x00')
             self.file.close()
             
         
         
     def _initPieceList(self):
-        FileInfo = self.metafile['info']
-        self.info_hash = hashlib.sha1(FileInfo)
-        # pay attention
-        self.fileLength = FileInfo['length']
-        self.md5sum = FileInfo['md5sum']
-        self.name = FileInfo['name']
-        self.pieceLength = FileInfo['piece length']
         fileReader = open(self.downloadFilename, 'rb')
         for i in range(0, len(FileInfo['pieces'])/20):
             if i != len(FileInfo['pieces'])/20 - 1:
@@ -102,7 +102,7 @@ class Peer():
         # xh adds
         class peerIDCreator(object):
 
-            def _init_(self):
+            def __init__(self):
                 self.version = 1.0
 
             def getpeerID(self):
@@ -118,7 +118,7 @@ class Peer():
             file = open(filename, 'rb')
             return file.read()
         else:
-            file = open(filename, 'rw')
+            file = open(filename, 'wb')
             ret = bytes(ceil(len(self.pieceList)/8))
             file.write(ret)
             file.close()

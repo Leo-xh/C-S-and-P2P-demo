@@ -1,11 +1,12 @@
 import struct
 import utils
+#import Peer
 from twisted.internet.protocol import Protocol
-from Peer import Peer
+
 from bitstring import BitArray
 
-
 class PeerProtocol(Protocol):
+
     protocolName = "Compact Bittorrent Protocol/1.0"
     protocolMsgLen = len(protocolName)
     formatForHandshake = "!B%ds8s20s20s" % protocolMsgLen

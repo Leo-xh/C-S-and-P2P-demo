@@ -2,16 +2,16 @@ import bencode
 from twisted.internet import reactor
 from twisted.internet import task
 import socket
-from PeerProtocol import PeerProtocol
-from PeerFactory import PeerFactory
-from Peer import Peer
+import PeerProtocol
+import PeerFactory
+import Peer
 from Client import RequestClient
 
 INTERVAL_CONNECT_PEER = 5
 INTERVAL_ADD_REQUEST = 7
 INTERVAL_SEND_REQUEST = 4
 PEER_LISTEN_TCP_PORT = 6788
-CLIENT_UDP_PORT = 56789
+CLIENT_UDP_PORT = 56788
 
 
 def readMetafileFromFile(filename):
@@ -19,7 +19,7 @@ def readMetafileFromFile(filename):
 
 def main():
     metafile = readMetafileFromFile('test.torrent')
-    peer = Peer(reactor, metafile, 'file.txt')
+    peer = Peer.Peer(reactor, metafile, 'file.txt')
     reqClient = RequestClient(
         peer,
         clientIpstr=socket.gethostbyname(socket.gethostname()),
