@@ -1,6 +1,7 @@
 import random
 import bencode
 import hashlib
+import os
 from bitstring import BitArray
 from math import *
 from PeerFactory import PeerFactory
@@ -66,9 +67,23 @@ class Peer():
         self.bitfieldFilename = bitfieldFilename
         self.peerID = self._generatePeerID()
         self.pieceList = []
-        self.file = None
-        # self.file = open(downloadFilename, 'ab')
-
+        self._initFile(downloadFilename)
+#        self.file = open(downloadFilename, 'ab')
+        
+    # if the file exists, open it and move the file pointer to the head of it,
+    # otherwise, create it of the size length and mov the pointer to the head of it.
+    def _initFile(self, filename):
+        if os.path.exists(filename):
+            self.file = open(filename, 'ab')
+            self.file.seek(0)
+        else:
+            self.file = open(filename, 'wb')
+            self.file.seek(self.fileLength-1)
+            self.file.write(b'\x00')
+            self.file.seek(0)
+            
+        
+        
     def _initPieceList(self):
         FileInfo = self.metafile['info']
         self.info_hash = hashlib.sha1(FileInfo)
@@ -155,8 +170,10 @@ class Peer():
     def _blockReceived(self, pieceIndex, blockOffset, data, dataSize):
         self.pieceList[pieceIndex].blockList[blockOffset].data = data
         self.pieceList[pieceIndex].blockList[blockOffset].dataReceived = True
-        if self.pieceList[pieceIndex].pieceLength == blockOffset + dataSize:
-            self._pieceFinished(pieceIndex)
+        for block in self.pieceList[pieceIndex].blockList.values():
+            if block.dataReceived != True:
+                return 
+        self._pieceFinished(pieceIndex)
         
     def peerListReceived(self, peerList):
         self.peerList = peerList
@@ -195,7 +212,7 @@ class Peer():
                         self.activePeerList[peerID].protocol._sendRequest(piece.pieceIndex,
                                                                           block.offset,
                                                                           block.size)
-                        self.pieceList.blockList[block.offset].requestSent = True
+                        self.pieceList[piece.pieceIndex].blockList[block.offset].requestSent = True
                         return
 
 

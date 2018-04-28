@@ -1,4 +1,0 @@
-PWD D:/C-S-and-P2P-demo/docs
-INPUT e:/texlive/2017/texmf-var/web2c/xetex/xelatex.fmt
-INPUT ./cover.tex
-OUTPUT cover.log

@@ -113,6 +113,14 @@ INPUT e:/texlive/2017/texmf-dist/tex/latex/ctex/fontset/ctex-fontset-windowsnew.
 INPUT c:/Windows/Fonts/msyh.ttc
 INPUT e:/texlive/2017/texmf-dist/tex/latex/ctex/config/ctex.cfg
 INPUT e:/texlive/2017/texmf-dist/tex/latex/ctex/config/ctex.cfg
+INPUT e:/texlive/2017/texmf-dist/tex/latex/geometry/geometry.sty
+INPUT e:/texlive/2017/texmf-dist/tex/latex/geometry/geometry.sty
+INPUT e:/texlive/2017/texmf-dist/tex/generic/oberdiek/ifpdf.sty
+INPUT e:/texlive/2017/texmf-dist/tex/generic/oberdiek/ifpdf.sty
+INPUT e:/texlive/2017/texmf-dist/tex/generic/oberdiek/ifvtex.sty
+INPUT e:/texlive/2017/texmf-dist/tex/generic/oberdiek/ifvtex.sty
+INPUT e:/texlive/2017/texmf-dist/tex/generic/ifxetex/ifxetex.sty
+INPUT e:/texlive/2017/texmf-dist/tex/generic/ifxetex/ifxetex.sty
 INPUT e:/texlive/2017/texmf-dist/tex/latex/float/float.sty
 INPUT e:/texlive/2017/texmf-dist/tex/latex/float/float.sty
 INPUT e:/texlive/2017/texmf-dist/tex/latex/listings/listings.sty
@@ -130,8 +138,6 @@ INPUT e:/texlive/2017/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
 INPUT e:/texlive/2017/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
 INPUT e:/texlive/2017/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
 INPUT e:/texlive/2017/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
-INPUT e:/texlive/2017/texmf-dist/tex/generic/ifxetex/ifxetex.sty
-INPUT e:/texlive/2017/texmf-dist/tex/generic/ifxetex/ifxetex.sty
 INPUT e:/texlive/2017/texmf-dist/tex/latex/oberdiek/auxhook.sty
 INPUT e:/texlive/2017/texmf-dist/tex/latex/oberdiek/auxhook.sty
 INPUT e:/texlive/2017/texmf-dist/tex/latex/oberdiek/kvoptions.sty
@@ -173,8 +179,6 @@ INPUT e:/texlive/2017/texmf-dist/tex/latex/base/ts1enc.def
 INPUT e:/texlive/2017/texmf-dist/tex/latex/base/ts1enc.def
 INPUT e:/texlive/2017/texmf-dist/tex/latex/multirow/multirow.sty
 INPUT e:/texlive/2017/texmf-dist/tex/latex/multirow/multirow.sty
-INPUT e:/texlive/2017/texmf-dist/tex/latex/geometry/geometry.sty
-INPUT e:/texlive/2017/texmf-dist/tex/latex/geometry/geometry.sty
 INPUT e:/texlive/2017/texmf-dist/tex/latex/media9/media9.sty
 INPUT e:/texlive/2017/texmf-dist/tex/latex/media9/media9.sty
 INPUT e:/texlive/2017/texmf-dist/tex/latex/media9/pdfbase.sty
