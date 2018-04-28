@@ -240,6 +240,7 @@ class Peer():
                     self.connected[peer] = True
                     # print("try connect")
                     return
+        self.reactor.callLater(random.randint(5, 20), peer.tryConnectPeer)
 
     def tryAddRequest(self):  # add a peer to a request list
         if self.requestCount < MAX_NUM_REQUESTS:
