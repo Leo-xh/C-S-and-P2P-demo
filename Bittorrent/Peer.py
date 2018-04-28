@@ -32,10 +32,12 @@ class Piece(object):
     def __init__(self, pieceIndex, pieceLength, SHA1):
         self.pieceIndex = pieceIndex
         self.pieceLength = pieceLength
+        # print(self.pieceLength)
         self.SHA1 = SHA1
         self.have = False
         self.blockList = {}  # key: offset, val: blockInfo
         self._initBlockList()
+        # print(len(self.blockList))
         self.requestList = []   # a list of peerID
     
     def _initBlockList(self):
@@ -64,21 +66,27 @@ class Peer():
         self.activePeerList = {}  # key: peerID, val: activePeer
         self.requestCount = 0  # total requests
         self.reactor = reactor
-        self.factory = PeerFactory.PeerFactory(self)
+        self.Clientfactory = PeerFactory.PeerClientFactory(self)
+        self.Serverfactory = PeerFactory.PeerServerFactory(self)
         self.metafile = metafile
-        FileInfo = self.metafile['info']
-        self.info_hash = hashlib.sha1(str(FileInfo).encode()).digest()
+        self.FileInfo = self.metafile['info']
+        self.info_hash = hashlib.sha1(str(self.FileInfo).encode()).digest()
         # pay attention
-        self.fileLength = FileInfo['length']
-        self.md5sum = FileInfo.get('md5sum')
-        self.name = FileInfo['name']
-        self.pieceLength = FileInfo['piece length']
+        self.fileLength = self.FileInfo['length']
+        print(self.fileLength)
+        self.md5sum = self.FileInfo.get('md5sum')
+        self.name = self.FileInfo['name']
+        self.pieceLength = self.FileInfo['piece length']
+        print(self.pieceLength)
         self.downloadFilename = downloadFilename
+        self.pieceList = []
+        self._initPieceList()
         self.bitfield = self._readBitfieldFromFile(bitfieldFilename)
         self.bitfieldFilename = bitfieldFilename
         self.peerID = self._generatePeerID()
-        self.pieceList = []
         self._initFile(downloadFilename)
+        self._initData()
+        
         
     def _initFile(self, filename):
         if not os.path.exists(filename):
@@ -90,16 +98,23 @@ class Peer():
         
         
     def _initPieceList(self):
-        fileReader = open(self.downloadFilename, 'rb')
-        for i in range(0, len(FileInfo['pieces'])/20):
-            if i != len(FileInfo['pieces'])/20 - 1:
-                self.pieceList.append(Piece(i, self.pieceLength, FileInfo['pieces'][i*20:(i+1)*20]))
+        for i in range(0, len(self.FileInfo['pieces'])//20):
+            if i != len(self.FileInfo['pieces'])//20 - 1:
+                self.pieceList.append(Piece(i, self.pieceLength, self.FileInfo['pieces'][i*20:(i+1)*20]))
             else:
-                self.pieceList.append(Piece(i, len(FileInfo['pieces'])-20*i, FileInfo['pieces'][i*20:]))
-            if self.bitfield[i] == True:
+                self.pieceList.append(Piece(i, len(self.FileInfo['pieces'])-20*i, self.FileInfo['pieces'][i*20:]))
+
+
+    def _initData(self):
+        # print(self.bitfield)
+        # print(len(self.FileInfo['pieces'])//20)
+        fileReader = open(self.downloadFilename, 'rb')
+        bit = BitArray(self.bitfield)
+        for i in range(0, len(self.FileInfo['pieces'])//20):
+            if bit[i] == True:
                 fileReader.seek(self.pieceLength * i)
                 self.pieceList[i]._readBlockData(fileReader)
-        
+
     def _generatePeerID(self):
         # xh adds
         class peerIDCreator(object):
@@ -117,9 +132,10 @@ class Peer():
 
     def _readBitfieldFromFile(self, filename):
         if os.path.exists(filename):
-            file = open(filename, 'rb')
-            return file.read()
+            with open(filename, 'rb') as file:
+                return file.read()
         else:
+            # print("init bitfield")
             file = open(filename, 'wb')
             ret = bytes(ceil(len(self.pieceList)/8))
             file.write(ret)
@@ -130,19 +146,25 @@ class Peer():
         self.bitfield = BitArray(self.bitfield).set(addPiece, pieceIndex).bytes
 
     def _writePiece(self, piece):  # write a Piece to file
+        print(piece.blockList)
         self.file = open(self.downloadFilename, 'ab')
         self.file.seek(piece.pieceIndex * self.pieceLength)
-        blockOffsets = list(piece.blockList.keys()).sort()
+        blockOffsets = sorted(list(piece.blockList.keys()))
+        print(blockOffsets)
         for offset in blockOffsets:
             self.file.write(piece.blockList[offset].data)
         self.file.close()
         file = open(self.bitfieldFilename, 'wb')
         file.write(self.bitfield)
         file.close()
+        count = 0
         for piece in self.pieceList:
-            if piece.have != True:
-                return 
-        self._downloadFinished()
+            if piece.have == True:
+                count += 1 
+                # return
+        print("Received %d pieces" % count)
+        if(count == len(self.pieceList)):
+            self._downloadFinished()
 
     def _downloadFinished(self):
         print(self.downloadFilename, " downloaded.")
@@ -175,6 +197,7 @@ class Peer():
 
     def _pieceFinished(self, pieceIndex):
         self.pieceList[pieceIndex].have = True
+        self.requestCount -= len(self.pieceList[pieceIndex].requestList)
         for activePeer in self.activePeerList.values():
             activePeer.protocol._sendHave(pieceIndex)
         self._writePiece(self.pieceList[pieceIndex])
@@ -190,16 +213,20 @@ class Peer():
     def peerListReceived(self, peerList):
         self.peerList = peerList
         for peer in peerList:
-            if peer == ('127.0.0.1', self.peerPort):
-                self.connected[peer] = True
-            else:
-                self.connected[peer] = False
+            if peer not in self.connected:
+                if peer == ('127.0.0.1', self.peerPort):
+                    self.connected[peer] = True
+                else:
+                    self.connected[peer] = False
 
     def tryConnectPeer(self):
+        print(self.peerList)
         if len(self.activePeerList) < MAX_NUM_ACTIVE_PEERS:
             for peer in self.peerList:
                 if not self.connected[peer]:
-                    self.reactor.connectTCP(peer[0], peer[1], self.factory)
+                    self.reactor.connectTCP(peer[0], peer[1], self.Clientfactory)
+                    self.connected[peer] = True
+                    print("try connect")
                     return
 
     def tryAddRequest(self):  # add a peer to a request list
@@ -214,6 +241,7 @@ class Peer():
                             if bitfield[pieceIndex]:
                                 self.pieceList[pieceIndex].requestList.append(peer.peerID)
                                 self.requestCount += 1
+                                print("try add request")        
                                 return
 
     def trySendRequest(self):
@@ -228,6 +256,7 @@ class Peer():
                                                                           block.offset,
                                                                           block.size)
                         self.pieceList[piece.pieceIndex].blockList[block.offset].requestSent = True
+                        print("send request")        
                         return
 
 

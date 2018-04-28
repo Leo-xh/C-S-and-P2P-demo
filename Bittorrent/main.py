@@ -41,7 +41,7 @@ def main():
     reactor.adoptDatagramPort(reqClient.portSocket.fileno(),
                               socket.AF_INET, reqClient)
 
-    reactor.listenTCP(PEER_LISTEN_TCP_PORT, peer.factory)
+    reactor.listenTCP(PEER_LISTEN_TCP_PORT, peer.Serverfactory)
     loopConnectPeer = task.LoopingCall(peer.tryConnectPeer)
     loopAddRequest = task.LoopingCall(peer.tryAddRequest)
     loopSendRequest = task.LoopingCall(peer.trySendRequest)

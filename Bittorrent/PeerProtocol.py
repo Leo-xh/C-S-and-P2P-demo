@@ -26,8 +26,10 @@ class PeerProtocol(Protocol):
         self.shakeSent = False
         self.peerIDRecv = None
 
+        self.sendConn = False
+
     def _handshake(self):
-        print(time.clock(), end='')
+        print(time.time(), end='')
         print("Handshaking to ", self.transport.getPeer())
         packet = struct.pack(self.formatForHandshake, self.protocolMsgLen,
                              self.protocolName.encode(), bytes(8),
@@ -38,10 +40,11 @@ class PeerProtocol(Protocol):
 
     def _sendBitfield(self):
         print("sending bitfield")
-        LenOfBitfield = len(self.peer._getBitfield()) + 1
+        LenOfBitfield = len(self.peer._getBitfield())
         packet = struct.pack(
             (self.formatMessageHead + "%ds") % LenOfBitfield,
             LenOfBitfield + 1, 5, self.peer._getBitfield())
+        print(packet)
         self.transport.write(packet)
         self.bitfieldSent = True
 
@@ -62,13 +65,18 @@ class PeerProtocol(Protocol):
         self.transport.write(packet)
 
     def connectionMade(self):
-        self._handshake()
+        if self.sendConn == True:
+            self._handshake()
 
     def connectionLost(self, reason): # ychz debug 17:36
         print("connection Lost")
 
     def dataReceived(self, data):
+        print("reve data /////")
+        print(data)
+
         self.recvBuff += data
+        print(self.recvBuff)
         if len(self.recvBuff) == 0:
             return
         if self.shaked == False:  # handshake
@@ -81,7 +89,10 @@ class PeerProtocol(Protocol):
         else:  # others
             if len(self.recvBuff) >= 5:
                 self.msgLen, self.msgID = struct.unpack("!IB", self.recvBuff[0:5])
+                print(self.msgLen)
+                print(self.msgID)
                 if len(self.recvBuff) >= self.msgLen + 4:
+                    print("yes")
                     if self.msgID == 4:
                         self.haveReceived()
                     elif self.msgID == 5:
@@ -90,24 +101,24 @@ class PeerProtocol(Protocol):
                         self.requestReceived()
                     elif self.msgID == 7:
                         self.pieceReceived()
-
+    
     def handshakeReceived(self):
-        print(time.clock(), end='')
+        print(time.time(), end='')
         print("Handshake from ", self.transport.getPeer())
-        (self.msgLen, protocolNameRecv,
+        (protocolNameRecv,
          reserved, infohashRecv, peerIDRecv) = struct.unpack(
-             self.formatForHandshake, self.recvBuff[0:self.msgLen])
+             "!%ds8s20s20s" % (self.protocolMsgLen), self.recvBuff[1:self.msgLen])
+        self.recvBuff = self.recvBuff[self.msgLen:]
         protocolNameRecv = protocolNameRecv.decode()
         peerIDRecv = peerIDRecv.decode()
-        infohashRecv = infohashRecv.decode()
+        infohashRecv = infohashRecv
         if ((protocolNameRecv != self.protocolName)
                 or (infohashRecv != self.peer._getInfoHash())
-                or (peerIDRecv == self.peer._getpeerID())
+                or (peerIDRecv == self.peer._getPeerID())
                 or (self.peer._isActivePeerID(peerIDRecv))):
             self.transport.abortConnection()
             print("handshake fail")
         else:
-            self.recvBuff = self.recvBuff[self.msgLen:]
             print("handshake received")
             self._handshake()
             self.shaked = True
@@ -115,11 +126,12 @@ class PeerProtocol(Protocol):
             self.peerIDRecv = peerIDRecv
 
     def handshakeReplyReceived(self):
-        print(time.clock(), end='')
+        print(time.time(), end='')
         print("Handshake reply from ", self.transport.getPeer())
-        (self.msgLen, protocolNameRecv,
+        ( protocolNameRecv,
          reserved, infohashRecv, peerIDRecv) = struct.unpack(
-             self.formatForHandshake, self.recvBuff[0:self.msgLen])
+             "!%ds8s20s20s" % (self.protocolMsgLen), self.recvBuff[1:self.msgLen])
+        self.recvBuff = self.recvBuff[self.msgLen:]
         protocolNameRecv = protocolNameRecv.decode()
         peerIDRecv = peerIDRecv.decode()
         infohashRecv = infohashRecv
@@ -130,23 +142,35 @@ class PeerProtocol(Protocol):
             self.transport.abortConnection()
             print("handshake failed")
         else:
-            self.recvBuff = self.recvBuff[self.msgLen:]
             print("handshake finished")
             self.shaked = True
             self._sendBitfield()
+            self.peerIDRecv = peerIDRecv
             self.peer._addActivePeer(peerIDRecv, self)
+            print(peerIDRecv)
 
     def bitfieldReceived(self):
         print("bitfield Received")
+<<<<<<< 70dad92f3a8506638f6cf45e6a1fa99350303905
         bitfieldRecv = struct.unpack('!%ds' % self.msgLen - 1,
                                      self.recvBuff[5:self.msgLen + 4])[0]
         self.recvBuff = self.recvBuff[self.msgLen + 4:]
         if (self.bitfieldSent == False):
             self._sendBitfield()
         self.peer._addActivePeerBitfield(self.peerIDRecv, bitfieldRecv)
+=======
+        self.bitfieldRecv = struct.unpack('!%ds' % (self.msgLen - 1),
+                                          self.recvBuff[5:self.msgLen + 4])[0]
+        self.recvBuff = self.recvBuff[self.msgLen + 4:]
+        if (self.bitfieldSent == False):
+            self._sendBitfield()
+        print(self.peerIDRecv)
+        self.peer._addActivePeerBitfield(self.peerIDRecv, self.bitfieldRecv)
+>>>>>>> debug 2.0
 
     def requestReceived(self):
         # message ID is 6
+        print("requested")
         pieceIndex, blockOffset, blockLen = struct.unpack("!III",
                                                        self.recvBuff[5:17])
         self.recvBuff = self.recvBuff[17:]
@@ -162,6 +186,7 @@ class PeerProtocol(Protocol):
     def pieceReceived(self):
         # message ID is 7
         # if piece download finished, call Peer.pieceFinished
+        print("piece")
         pieceIndex, blockOffset = struct.unpack("!II", self.recvBuff[5:13])
         pieceData = self.recvBuff[13:self.msgLen + 4]
         self.recvBuff = self.recvBuff[self.msgLen + 4:]
