@@ -61,8 +61,9 @@ class service(DatagramProtocol):
 
                 else:  # replace peer's connectionID
                     connectionID_bak = peerAddrAndConnID[peerAddr]
-                    peerTimer[connectionID_bak].cancel()
-                    del peerTimer[connectionID_bak]
+                    if connectionID_bak in peerTimer:
+                        peerTimer[connectionID_bak].cancel()
+                        del peerTimer[connectionID_bak]
                     index = peerConnectID.index(connectionID_bak)
                     peerConnectID[index] = connectionID
 

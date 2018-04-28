@@ -1,7 +1,7 @@
 from twisted.internet.protocol import Factory
-from PeerProtocol import PeerProtocol
+import PeerProtocol
 class PeerFactory(Factory):
-    protocol = PeerProtocol
+    protocol = PeerProtocol.PeerProtocol
 
     def __init__(self, peer):
         self.peer = peer
@@ -11,3 +11,11 @@ class PeerFactory(Factory):
         p.factory = self
         return p
 
+    def startedConnecting(self, connector):
+        pass
+        
+    def clientConnectionLost(self, connector, reason):
+        pass
+
+    def clientConnectionFailed(self, connector, reason):
+        pass

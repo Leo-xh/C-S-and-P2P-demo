@@ -1,27 +1,32 @@
+import bencode
 from twisted.internet import reactor
 from twisted.internet import task
 import socket
-from PeerProtocol import PeerProtocol
-from PeerFactory import PeerFactory
-from Peer import Peer
+import PeerProtocol
+import PeerFactory
+import Peer
 from Client import RequestClient
 
 INTERVAL_CONNECT_PEER = 5
 INTERVAL_ADD_REQUEST = 7
 INTERVAL_SEND_REQUEST = 4
-PEER_LISTEN_TCP_PORT = 6788
-CLIENT_UDP_PORT = 56789
-
+# PEER_LISTEN_TCP_PORT = 6788
+# CLIENT_UDP_PORT = 56788
+import random
+PEER_LISTEN_TCP_PORT = random.randint(6000, 7000)
+CLIENT_UDP_PORT = random.randint(50000, 57000)
 
 def readMetafileFromFile(filename):
-    pass
+    return bencode.decode(open(filename, 'rb').read())
 
 def main():
     metafile = readMetafileFromFile('test.torrent')
-    peer = Peer(reactor, metafile, 'file.txt')
+    peer = Peer.Peer(PEER_LISTEN_TCP_PORT, reactor, metafile, 'file.txt')
     reqClient = RequestClient(
         peer,
-        clientIpstr=socket.gethostbyname(socket.gethostname()),
+        PEER_LISTEN_TCP_PORT,
+        clientIpstr = '127.0.0.1',
+        # clientIpstr=socket.gethostbyname(socket.gethostname()),
         clientPort=CLIENT_UDP_PORT,
         protocol_id=1,
         info_hash=peer._getInfoHash(),

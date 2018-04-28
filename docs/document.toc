@@ -4,6 +4,24 @@
 \contentsline {subsection}{\numberline {2.1}协议设计}{3}{subsection.2.1}
 \contentsline {subsection}{\numberline {2.2}特点}{5}{subsection.2.2}
 \contentsline {section}{\numberline {3}P2P通信}{6}{section.3}
+<<<<<<< HEAD
+\contentsline {subsection}{\numberline {3.1}Twisted和异步编程}{7}{subsection.3.1}
+\contentsline {subsubsection}{\numberline {3.1.1}Twisted简介}{7}{subsubsection.3.1.1}
+\contentsline {subsubsection}{\numberline {3.1.2}异步编程与事件驱动}{7}{subsubsection.3.1.2}
+\contentsline {subsection}{\numberline {3.2}Tracker和Client的通信}{7}{subsection.3.2}
+\contentsline {subsubsection}{\numberline {3.2.1}协议设计}{7}{subsubsection.3.2.1}
+\contentsline {subsubsection}{\numberline {3.2.2}协议特点}{7}{subsubsection.3.2.2}
+\contentsline {subsection}{\numberline {3.3}Peer通信}{7}{subsection.3.3}
+\contentsline {subsubsection}{\numberline {3.3.1}协议设计}{7}{subsubsection.3.3.1}
+\contentsline {subsubsection}{\numberline {3.3.2}协议特点}{7}{subsubsection.3.3.2}
+\contentsline {section}{\numberline {4}安装和部署}{7}{section.4}
+\contentsline {section}{\numberline {5}结果}{7}{section.5}
+\contentsline {subsection}{\numberline {5.1}结果展示}{7}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}对比}{8}{subsection.5.2}
+\contentsline {section}{\numberline {6}总结}{8}{section.6}
+\contentsline {section}{\numberline {7}项目管理记录}{8}{section.7}
+\contentsline {section}{\numberline {A}参考文献}{9}{附录.a.A}
+=======
 \contentsline {subsection}{\numberline {3.1}Tracker和Client的通信}{6}{subsection.3.1}
 \contentsline {subsubsection}{\numberline {3.1.1}协议设计}{6}{subsubsection.3.1.1}
 \contentsline {subsubsection}{\numberline {3.1.2}协议特点}{7}{subsubsection.3.1.2}
@@ -17,3 +35,4 @@
 \contentsline {section}{\numberline {6}总结}{9}{section.6}
 \contentsline {section}{\numberline {7}项目管理记录}{9}{section.7}
 \contentsline {section}{\numberline {A}参考文献}{10}{附录.a.A}
+>>>>>>> 886460c140750dd49264979a5dbbbaf54da75083
