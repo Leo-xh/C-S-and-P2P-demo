@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.99998 (TeX Live 2017/W32TeX) (preloaded format=xelatex 2018.3.24)  28 APR 2018 10:37
+This is XeTeX, Version 3.14159265-2.6-0.99998 (TeX Live 2017/W32TeX) (preloaded format=xelatex 2018.3.24)  28 APR 2018 11:55
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1720,7 +1720,10 @@ LaTeX Warning: Unused global option(s):
 
 (./document.aux
 
-LaTeX Warning: Label `sub:协议设计' multiply defined.
+LaTeX Warning: Label `ssub:协议设计' multiply defined.
+
+
+LaTeX Warning: Label `ssub:协议特点' multiply defined.
 
 )
 \openout1 = `document.aux'.
@@ -1951,75 +1954,75 @@ Overfull \hbox (21.50154pt too wide) in paragraph at lines 143--144
 
 File: imgs/client.png Graphic file (type bmp)
 <imgs/client.png>
-
-Underfull \hbox (badness 10000) in paragraph at lines 186--199
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 186--199
+[5]
+Underfull \hbox (badness 10000) in paragraph at lines 208--221
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 186--199
+Underfull \hbox (badness 10000) in paragraph at lines 208--221
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 186--199
+Underfull \hbox (badness 10000) in paragraph at lines 208--221
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 186--199
+Underfull \hbox (badness 10000) in paragraph at lines 208--221
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 186--199
+Underfull \hbox (badness 10000) in paragraph at lines 208--221
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 186--199
+Underfull \hbox (badness 10000) in paragraph at lines 208--221
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 186--199
+Underfull \hbox (badness 10000) in paragraph at lines 208--221
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 186--199
+Underfull \hbox (badness 10000) in paragraph at lines 208--221
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 186--199
+Underfull \hbox (badness 10000) in paragraph at lines 208--221
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 186--199
+Underfull \hbox (badness 10000) in paragraph at lines 208--221
 
  []
 
-[5] [6]
-Overfull \hbox (21.02194pt too wide) in paragraph at lines 220--221
+
+Underfull \hbox (badness 10000) in paragraph at lines 208--221
+
+ []
+
+[6] [7]
+Overfull \hbox (21.02194pt too wide) in paragraph at lines 242--243
 []\TU/TimesNewRoman(0)/m/n/10.53937 Jonas Fonseca\TU/SimSun(1)/m/n/10.53937 ，| 
 \TU/TimesNewRoman(0)/m/n/10.53937 et al\TU/SimSun(1)/m/n/10.53937 ，| [][]$[][][
 ][] [] [] [] [][][][][] [] [][][][][] [] [][] [] [][][][][][][][][][] [] [][][]
 [][][][][][][][][][][][] [] [][][][] [] [][][][][][][][]$[][]，|
  []
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 225.
-[7]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 225.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 248.
+[8]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 248.
  (./document.aux)
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 225.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 225.
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 248.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 248.
 
 
 LaTeX Font Warning: Size substitutions with differences
@@ -2031,15 +2034,15 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 225.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 248.
  ) 
 Here is how much of TeX's memory you used:
- 30511 strings out of 493007
- 600410 string characters out of 6137965
+ 30517 strings out of 493007
+ 600498 string characters out of 6137965
  666600 words of memory out of 5000000
- 34181 multiletter control sequences out of 15000+600000
+ 34187 multiletter control sequences out of 15000+600000
  532612 words of font info for 65 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  57i,11n,68p,10434b,422s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on document.xdv (8 pages, 74548 bytes).
+Output written on document.xdv (9 pages, 88488 bytes).
