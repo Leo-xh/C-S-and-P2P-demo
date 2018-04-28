@@ -3,6 +3,7 @@ import os
 import socket
 import struct
 import threading
+import time
 from Crypto.Cipher import AES
 # -*- coding=utf-8 -*-
 '''
@@ -172,8 +173,11 @@ def client():
                     os.makedirs(filePath)
             task = threading.Thread(
                 target=request, args=(fileName, filePath, service))
+            starttime = time.clock()
             task.start()
             task.join()
+            endtime = time.clock()
+            print("Cost %f seconds" % (endtime - starttime))
         if operation == 'L' or operation == 'l':
             task = threading.Thread(target=lookup)
             task.start()
