@@ -57,7 +57,7 @@ class RequestClient(DatagramProtocol):
         self.trackerIpstr = trackerIpstr
         self.trackerIp = utils.ip2int(self.trackerIpstr)
         self.trackerPort = trackerPort
-        self.udp_port = udp_port
+        self.udp_port = self.clientPort
 
         self.interval = 0
         self.transaction_id = 0

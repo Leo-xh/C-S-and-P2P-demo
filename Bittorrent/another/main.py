@@ -1,3 +1,5 @@
+import sys 
+sys.path.append("../")
 import bencode
 from twisted.internet import reactor
 from twisted.internet import task
