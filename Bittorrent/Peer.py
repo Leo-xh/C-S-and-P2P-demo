@@ -54,7 +54,7 @@ class Piece(object):
 
     def _readBlockData(self, fileReader):
         self.have = True
-        for i in self.blockList.keys():
+        for i in sorted(self.blockList.keys()):
             self.blockList[i].dataReceived = True
             self.blockList[i].data = fileReader.read(self.blockList[i].size)
 
