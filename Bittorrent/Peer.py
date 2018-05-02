@@ -117,6 +117,7 @@ class Peer():
             if bit[i] == True:
                 fileReader.seek(self.pieceLength * i)
                 self.pieceList[i]._readBlockData(fileReader)
+        fileReader.close()
 
     def _generatePeerID(self):
         # xh adds
