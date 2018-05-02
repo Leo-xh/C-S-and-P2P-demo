@@ -180,6 +180,6 @@ class PeerProtocol(Protocol):
         # if piece download finished, call Peer.pieceFinished
         # print("piece")
         pieceIndex, blockOffset = struct.unpack("!II", self.recvBuff[5:13])
-        pieceData = self.recvBuff[13:self.msgLen + 4]
-        self.recvBuff = self.recvBuff[self.msgLen + 4:]
+        pieceData, = struct.unpack("%ds" % (self.msgLen-9), self.recvBuff[13:self.msgLen + 4])
+        self.recvBuff = self.recvBuff[self.msgLen+4:]
         self.peer._blockReceived(pieceIndex, blockOffset, pieceData, self.msgLen-9)

@@ -69,8 +69,8 @@ class service(DatagramProtocol):
 
                 peerAddrAndConnID[peerAddr] = connectionID
 
-            # interval = 30
-            interval = 10
+            interval = 30
+#            interval = 10
             packet = struct.pack("!III", action, transactionID, interval)
             packet += peerList
             self.transport.write(packet, recvAddr)  # send peerList to client

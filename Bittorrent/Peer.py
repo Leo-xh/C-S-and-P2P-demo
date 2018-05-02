@@ -6,8 +6,8 @@ from bitstring import BitArray
 from math import *
 import PeerFactory
 
-MAX_NUM_ACTIVE_PEERS = 3
-MAX_NUM_REQUESTS = 10
+MAX_NUM_ACTIVE_PEERS = 4
+MAX_NUM_REQUESTS = 200
 MAX_NUM_REQUESTS_PER_PIECE = 1
 
 BLOCK_SIZE = 16384  # 2^14
@@ -100,11 +100,13 @@ class Peer():
             self.file.close()
 
     def _initPieceList(self):
-        for i in range(0, len(self.FileInfo['pieces']) // 20):
-            if i != len(self.FileInfo['pieces']) // 20 - 1:
+        for i in range(0, ceil(len(self.FileInfo['pieces'])/20)):
+            if i != len(self.FileInfo['pieces']) // 20:
+#                print("initializing %dth piece" % i)
                 self.pieceList.append(Piece(i, self.pieceLength, self.FileInfo[
                                       'pieces'][i * 20:(i + 1) * 20]))
             else:
+#                print("initializing %dth piece" % i)
                 self.pieceList.append(Piece(
                     i, len(self.FileInfo['pieces']) - 20 * i, self.FileInfo['pieces'][i * 20:]))
 
@@ -113,7 +115,7 @@ class Peer():
         # print(len(self.FileInfo['pieces'])//20)
         fileReader = open(self.name, 'rb')
         bit = BitArray(self.bitfield)
-        for i in range(0, len(self.FileInfo['pieces']) // 20):
+        for i in range(0, ceil(len(self.FileInfo['pieces']) / 20)):
             if bit[i] == True:
                 fileReader.seek(self.pieceLength * i)
                 self.pieceList[i]._readBlockData(fileReader)
@@ -159,6 +161,7 @@ class Peer():
 
     def _writePiece(self, piece):  # write a Piece to file
         # print(piece.blockList)
+#        print("writing %dth piece"%(piece.pieceIndex+1))
         self.file = open(self.name, 'rb+')
         self.file.seek(piece.pieceIndex * self.pieceLength)
         blockOffsets = sorted(list(piece.blockList.keys()))
