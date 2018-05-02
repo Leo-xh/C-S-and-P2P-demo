@@ -139,6 +139,7 @@ class RequestClient(DatagramProtocol):
                 # for peerAddr in self.peerList:
                 #     print(peerAddr)
                 # print("\n")
+#                print(self.peerList)
                 self.peer.peerListReceived(self.peerList)
                 self.intervalAnnounce = reactor.callLater(
                     self.interval, self.announce)
