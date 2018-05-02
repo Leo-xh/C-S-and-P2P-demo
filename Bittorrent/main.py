@@ -8,23 +8,26 @@ import Peer
 from Client import RequestClient
 
 INTERVAL_CONNECT_PEER = 5
-INTERVAL_ADD_REQUEST = 7
-INTERVAL_SEND_REQUEST = 4
-PEER_LISTEN_TCP_PORT = 6788
-CLIENT_UDP_PORT = 56788
-
+INTERVAL_ADD_REQUEST = 1/20
+INTERVAL_SEND_REQUEST = 1/20
+# PEER_LISTEN_TCP_PORT = 6788
+# CLIENT_UDP_PORT = 56788
+import random
+PEER_LISTEN_TCP_PORT = random.randint(6000, 7000)
+CLIENT_UDP_PORT = random.randint(50000, 57000)
 
 def readMetafileFromFile(filename):
     return bencode.decode(open(filename, 'rb').read())
 
 def main():
     metafile = readMetafileFromFile('test.torrent')
-    peer = Peer.Peer(reactor, metafile, 'file.txt')
+    peer = Peer.Peer(PEER_LISTEN_TCP_PORT, reactor, metafile, 'file.txt')
     reqClient = RequestClient(
         peer,
-        CLIENT_UDP_PORT,
-        clientIpstr=socket.gethostbyname(socket.gethostname()),
-        clientPort=PEER_LISTEN_TCP_PORT,
+        PEER_LISTEN_TCP_PORT,
+        clientIpstr = '127.0.0.1',
+        # clientIpstr=socket.gethostbyname(socket.gethostname()),
+        clientPort=CLIENT_UDP_PORT,
         protocol_id=1,
         info_hash=peer._getInfoHash(),
         peer_id=peer._getPeerID(),
@@ -38,12 +41,13 @@ def main():
     reactor.adoptDatagramPort(reqClient.portSocket.fileno(),
                               socket.AF_INET, reqClient)
 
-    reactor.listenTCP(PEER_LISTEN_TCP_PORT, peer.factory)
-    loopConnectPeer = task.LoopingCall(peer.tryConnectPeer)
+    reactor.listenTCP(PEER_LISTEN_TCP_PORT, peer.Serverfactory)
+    # loopConnectPeer = task.LoopingCall(peer.tryConnectPeer)
     loopAddRequest = task.LoopingCall(peer.tryAddRequest)
     loopSendRequest = task.LoopingCall(peer.trySendRequest)
 
-    loopConnectPeer.start(INTERVAL_CONNECT_PEER)
+    reactor.callLater(INTERVAL_CONNECT_PEER, peer.tryConnectPeer)
+    # loopConnectPeer.start(INTERVAL_CONNECT_PEER)
     loopAddRequest.start(INTERVAL_ADD_REQUEST)
     loopSendRequest.start(INTERVAL_SEND_REQUEST)
 

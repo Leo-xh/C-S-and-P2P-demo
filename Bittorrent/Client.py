@@ -33,10 +33,11 @@ class RequestClient(DatagramProtocol):
     ClientIpStr is the listening TCP ip, and ClientPort is the corresponding port.
     '''
 
-    def __init__(self, peer, udp_port, trackerIpstr='127.0.0.1', trackerPort=56543, **args):
+    def __init__(self, peer, peerPort, trackerIpstr='127.0.0.1', trackerPort=56789, **args):
 
         super(RequestClient, self).__init__()
         self.peer = peer
+        self.peerPort = peerPort
         # data to transfer
         self.protocol_id = args['protocol_id']
 
@@ -206,10 +207,10 @@ class RequestClient(DatagramProtocol):
         96      16-bit integer  port
         '''
         packet = struct.pack(self.announceReqFormat, self.connection_id, 1,
-                             self.transaction_id, self.info_hash.encode(),
+                             self.transaction_id, self.info_hash,
                              self.peer_id.encode(), self.downloaded, self.left,
                              self.uploaded, self.event, self.clientIP,
-                             self.key, self.num_want, self.clientPort)
+                             self.key, self.num_want, self.peerPort)
         self.transport.write(packet, (self.trackerIpstr, self.trackerPort))
         # reset the Timer
         if (self.retransAnnoun is not None and self.retransAnnoun.active()):

@@ -61,14 +61,16 @@ class service(DatagramProtocol):
 
                 else:  # replace peer's connectionID
                     connectionID_bak = peerAddrAndConnID[peerAddr]
-                    peerTimer[connectionID_bak].cancel()
-                    del peerTimer[connectionID_bak]
+                    if connectionID_bak in peerTimer:
+                        peerTimer[connectionID_bak].cancel()
+                        del peerTimer[connectionID_bak]
                     index = peerConnectID.index(connectionID_bak)
                     peerConnectID[index] = connectionID
 
                 peerAddrAndConnID[peerAddr] = connectionID
 
-            interval = 30
+            # interval = 30
+            interval = 10
             packet = struct.pack("!III", action, transactionID, interval)
             packet += peerList
             self.transport.write(packet, recvAddr)  # send peerList to client
