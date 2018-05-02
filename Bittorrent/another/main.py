@@ -22,7 +22,7 @@ def readMetafileFromFile(filename):
     return bencode.decode(open(filename, 'rb').read())
 
 def main():
-    metafile = readMetafileFromFile('test.torrent')
+    metafile = readMetafileFromFile('../test.torrent')
     peer = Peer.Peer(PEER_LISTEN_TCP_PORT, reactor, metafile)
     reqClient = RequestClient(
         peer,
