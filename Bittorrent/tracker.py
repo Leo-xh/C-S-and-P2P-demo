@@ -17,6 +17,7 @@ peerAddrAndConnID = {}  # the peer address and their only connectionID
 
 
 class service(DatagramProtocol):
+
     def datagramReceived(self, recvPacket, recvAddr):
         global peerList, peerTimer, peerConnectID
         if len(recvPacket) < 16:
